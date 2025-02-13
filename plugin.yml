@@ -1,0 +1,33 @@
+name: MartianEnchantments
+main: ecstsy\MartianEnchantments\Loader
+api: 5.3.0
+version: 1.0.0
+author: ecstsylove
+description: A highly customizable enchantment system for PocketMine-MP
+
+permissions:
+  martianenchantments.default:
+    default: op
+    description: Default permission for MartianEnchantments
+  martianenchantments.enchant:
+    default: op
+  martianenchantments.giveitem:
+    default: op
+  martianenchantments.unenchant:
+    default: op
+  martianenchantments.list:
+    default: true
+  martianenchantments.give:
+    default: op
+  martianenchantments.info:
+    default: true
+  martianenchantments.reload:
+    default: op
+  martianenchantments.give-rcbook:
+    default: op
+  martianenchantments.enchanter:
+    default: true
+  martianenchantments.asets:
+    default: op
+  martianenchantments.asets-give:
+    default: op
