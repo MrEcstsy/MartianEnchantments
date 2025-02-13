@@ -1,0 +1,50 @@
+# << Example configuration >>
+# lastchance: <-- Enchantment name
+#  display: "{group-color}Last Chance" <-- Display in item lore
+lifesteal:
+  display: "{group-color}Lifesteal"
+  description:
+    - "A chance to steal health"
+    - "when attacking."
+  applies-to: Swords
+  type:
+    - ATTACK
+  group: LEGENDARY
+  applies:
+    - ALL_SWORD
+  levels:
+    '1':
+      chance: 9
+      cooldown: 15
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-3}"
+          target: attacker
+    '2':
+      chance: 13
+      cooldown: 15
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-3}"
+          target: attacker
+    '3':
+      chance: 17
+      cooldown: 15
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-4}"
+          target: attacker
+    '4':
+      chance: 21
+      cooldown: 15
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-5}"
+          target: attacker
+    '5':
+      chance: 25
+      cooldown: 15
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-5}"
+          target: attacker      
