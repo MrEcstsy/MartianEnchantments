@@ -27,6 +27,9 @@ final class EnchantmentListener implements Listener {
         $this->plugin = $plugin;
     }
 
+    /**
+     * @priority HIGHEST
+     */
     public function onPlayerAttack(EntityDamageByEntityEvent $event): void {
         if ($event->isCancelled()) {
             return;
@@ -35,7 +38,7 @@ final class EnchantmentListener implements Listener {
         $attacker = $event->getDamager();
         $victim = $event->getEntity();
     
-        if (!$attacker instanceof Player || $attacker->getInventory()->getItemInHand()->isNull()) {
+        if (!$attacker instanceof Player || !$victim instanceof Player || $attacker->getInventory()->getItemInHand()->isNull()) {
             return;
         }
     
@@ -46,58 +49,82 @@ final class EnchantmentListener implements Listener {
             return;
         }
     
-        foreach ($enchantments as &$enchantmentConfig) {
+        $filteredEnchantments = []; 
+        foreach ($enchantments as $enchantmentConfig) {
+            $contextType = $enchantmentConfig['config']['type'] ?? [];
+    
+            if (!in_array("ATTACK", $contextType, true)) {
+                continue; 
+            }
+    
             $level = $enchantmentConfig['level'] ?? 1;
             $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
             $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-
-            if ($level !== null) {
-                $extraData = [
-                    'enchant-level' => $level, 
-                    "chance" => $chance,
-                    'enchant-name' => $enchantName
-                ];
-            }
+    
+            $extraData = [
+                'enchant-level' => $level, 
+                'chance' => $chance,
+                'enchant-name' => $enchantName
+            ];
+    
+            $filteredEnchantments[] = $enchantmentConfig; 
         }
-        
-        $trigger = new GenericTrigger();
-        $trigger->execute($attacker, $victim, $enchantments, 'ATTACK', $extraData);
+    
+        if (!empty($filteredEnchantments)) {
+            $trigger = new GenericTrigger();
+            $trigger->execute($attacker, $victim, $filteredEnchantments, 'ATTACK', $extraData);
+        }
     }
 
+    /**
+     * @priority HIGHEST
+     */
     public function onAttackMob(EntityDamageByEntityEvent $event): void {
         if ($event->isCancelled()) {
             return;
         }
-    
+        
         $attacker = $event->getDamager();
         $victim = $event->getEntity();
-    
-        if (!($attacker instanceof Player) && !($attacker instanceof Living)) {
+        
+        if (!$attacker instanceof Player || $victim instanceof Player || $attacker->getInventory()->getItemInHand()->isNull()) {
             return;
-        }
-    
-        if (!($victim instanceof Living) || $victim instanceof Player) {
-            return;
-        }
-    
-        $item = ($attacker instanceof Player) ? $attacker->getInventory()->getItemInHand() : null;
-        $enchantments = Utils::extractEnchantmentsFromItems($item !== null ? [$item] : []);
-    
+        }    
+        
+        $item = $attacker->getInventory()->getItemInHand();
+        $enchantments = Utils::extractEnchantmentsFromItems([$item]);
+
         if (empty($enchantments)) {
             return;
         }
+        
+        $filteredEnchantments = []; 
+        foreach ($enchantments as $enchantmentConfig) {
+            $contextType = $enchantmentConfig['config']['type'] ?? [];
     
-        $extraData = [
-            'enchant-level' => $enchantments['level'] ?? 1,
-            'chance' => $enchantments['config']['levels'][$enchantments['level'] ?? 1]['chance'] ?? 100,
-            'enchant-name' => $enchantments['name'] ?? 'unknown'
-        ];
+            if (!in_array("ATTACK_MOB", $contextType, true)) {
+                continue; 
+            }
     
-        $trigger = new GenericTrigger();
-        $trigger->execute($attacker, $victim, $enchantments, 'ATTACK_MOB', $extraData);
+            $level = $enchantmentConfig['level'] ?? 1;
+            $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
+            $enchantName = $enchantmentConfig['name'] ?? 'unknown';
+    
+            $extraData = [
+                'enchant-level' => $level,
+                'chance'        => $chance,
+                'enchant-name'  => $enchantName,
+            ];
+    
+            $filteredEnchantments[] = $enchantmentConfig; 
+        }
+    
+        if (!empty($filteredEnchantments)) {
+            $trigger = new GenericTrigger();
+            $trigger->execute($attacker, $victim, $filteredEnchantments, 'ATTACK_MOB', $extraData);
+        }
     }
     
-
     public function onPlayerDefend(EntityDamageByEntityEvent $event): void {
         if ($event->isCancelled()) {
             return;
