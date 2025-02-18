@@ -4,6 +4,7 @@ namespace ecstsy\MartianEnchantments\enchantments;
 
 use CustomEnchantmentInstance;
 use ecstsy\MartianEnchantments\Loader;
+use ecstsy\MartianEnchantments\utils\Utils;
 use ecstsy\MartianUtilities\utils\GeneralUtils;
 use muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\data\bedrock\EnchantmentIdMap;
@@ -57,6 +58,8 @@ final class CustomEnchantments {
                 return true;
             });
     
+        EnchantmentIdMap::getInstance()->register(Utils::FAKE_ENCH_ID, new Enchantment("", -1, 1, ItemFlags::ALL, ItemFlags::NONE));
+
         self::registerEnchantments(); 
     }
     
@@ -86,10 +89,11 @@ final class CustomEnchantments {
         $item = TypeConverter::getInstance()->netItemStackToCore($itemStack);
         $root = $item->getNamedTag();
         $martianCES = $root->getCompoundTag("MartianCES");
-
+        $vanillaEnchants = $root->getListTag("Enchantments");
+    
         $additionalInformation = TextFormat::RESET . TextFormat::AQUA . $item->getName();
         $lore = [];
-    
+        
         if ($martianCES !== null) {
             foreach ($martianCES->getValue() as $enchantName => $levelTag) {
                 $key = strtoupper($enchantName);
@@ -103,7 +107,7 @@ final class CustomEnchantments {
                     $color = Groups::translateGroupToColor($groupId);
                     $displayName = self::getEnchantmentDisplayName($enchantment->getName(), $color);
                     $enchantmentText = TextFormat::RESET . $displayName . " " . GeneralUtils::getRomanNumeral($level);
-    
+        
                     if ($item instanceof Armor) {
                         $lore[] = $enchantmentText;
                     } else {
@@ -111,7 +115,7 @@ final class CustomEnchantments {
                     }
                 }
             }
-    
+        
             self::preserveOriginalDisplayTag($item);
     
             if ($item instanceof Armor) {
@@ -123,8 +127,11 @@ final class CustomEnchantments {
             }
         }
     
+        Utils::updateGlowEffect($item);
+    
         return TypeConverter::getInstance()->coreItemStackToNet($item);
     }
+    
 
     /**
      * Retrieves the enchantment display name from the configuration.
