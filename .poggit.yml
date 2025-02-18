@@ -1,0 +1,28 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/MrEcstsy/MartianEnchantments
+build-by-default: true
+branches:
+- main
+projects:
+  MartianEnchantments:
+    path: ""
+    libs: 
+      - src: "muqsit/InvMenu/InvMenu"
+        branch: pm5
+        version: 4.6.5
+      - src: "Paroxity/Commando/Commando"
+        version: "^3.2.0"
+      - src: "muqsit/simplepackethandler/SimplePacketHandler"
+        branch: pm5
+        version: "^0.1.4"
+      - src: "MrEcstsy/libPiggyEconomy/libPiggyEconomy"
+        version: "3.0.4"
+      - src: "jojoe77777/FormAPI/libFormAPI"
+        version: "^2.1.1"
+      - src: taylordevs/libCustomPack/libCustomPack
+        version: ^1.0.1
+      - src: MrEcstsy/MartianUtilities/MartianUtilities
+        version: ^1.0.0
+      - src: ifera-mc/ConfigUpdater/ConfigUpdater
+        version: ^2.1.0
+
+...
