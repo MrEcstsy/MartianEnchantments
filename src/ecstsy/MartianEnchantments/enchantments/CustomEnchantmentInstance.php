@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use ecstsy\MartianEnchantments\enchantments;
+namespace ecstsy\MartianEnchantments\enchantments;
 
 final class CustomEnchantmentInstance {
 
