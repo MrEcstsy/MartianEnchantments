@@ -17,11 +17,20 @@ use ecstsy\MartianEnchantments\effects\BurnEffect;
 use ecstsy\MartianEnchantments\effects\DisableActivationEffect;
 use ecstsy\MartianEnchantments\effects\StealHealthEffect;
 use ecstsy\MartianEnchantments\Loader;
+use ecstsy\MartianEnchantments\triggers\EffectStaticTrigger;
+use ecstsy\MartianEnchantments\triggers\GenericTrigger;
+use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\registries\ConditionRegistry;
 use ecstsy\MartianEnchantments\utils\registries\EffectRegistry;
 use ecstsy\MartianEnchantments\utils\registries\TriggerRegistry;
 use ecstsy\MartianUtilities\utils\GeneralUtils;
 use pocketmine\data\bedrock\EnchantmentIdMap;
+use pocketmine\entity\effect\StringToEffectParser;
+use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\inventory\ArmorInventory;
+use pocketmine\inventory\Inventory;
+use pocketmine\inventory\PlayerInventory;
+use pocketmine\item\Armor;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\Item;
 use pocketmine\player\Player;
@@ -76,7 +85,11 @@ final class Utils {
     }
 
     public static function applyDisplayEnchant(Item $item): void {
-        $item->addEnchantment(new EnchantmentInstance(EnchantmentIdMap::getInstance()->fromId(CustomEnchantmentIds::FAKE_ENCH_ID)));
+        $item->addEnchantment(new EnchantmentInstance(EnchantmentIdMap::getInstance()->fromId(self::FAKE_ENCH_ID)));
+    }
+
+    public static function removeDisplayEnchant(Item $item): void {
+        $item->removeEnchantment(EnchantmentIdMap::getInstance()->fromId(self::FAKE_ENCH_ID));
     }
 
     /**
@@ -126,36 +139,39 @@ final class Utils {
                 $level = $levelTag->getValue();
                 $enchantmentConfig = $enchantmentConfigs[$key];
                 $enchantmentConfig['level'] = $level;
-                
+                $appliesTo = $enchantmentConfig['applies_to'] ?? [];
+
                 $enchantmentsToApply[] = [
                     'name'   => $key,       
                     'level'  => $level,
                     'config' => $enchantmentConfig,
+                    'applies_to' => $appliesTo
                 ];
             }
         }
         
         return $enchantmentsToApply;
     }
-    
+
     public static function getEffectsFromItems(array $items, string $trigger, Config $config): array {
-        return self::extractEnchantments($items, function ($itemData) use ($trigger, $config) {
-            $identifier = strtolower($itemData->getType()->getName());
+        return self::extractEnchantments($items, function (array $itemData, Item $item) use ($trigger, $config) {
+            $identifier = strtolower($itemData['name']);
             $configData = $config->get($identifier);
             if ($configData && in_array($trigger, $configData['type'], true)) {
-                return $configData['levels'][$itemData->getLevel()]['effects'] ?? [];
+                return $configData['levels'][$itemData['level']]['effects'] ?? [];
             }
             return [];
         });
-    }    
-
+    }
+    
     public static function getConditionsFromItems(array $items, string $trigger, Config $config): array {
-        return self::extractEnchantments($items, function ($itemData) use ($trigger, $config) {
-            $identifier = strtolower($itemData->getType()->getName());
+        return self::extractEnchantments($items, function (array $itemData, Item $item) use ($trigger, $config) {
+            $identifier = strtolower($itemData['name']);
             $configData = $config->get($identifier);
             if ($configData && in_array($trigger, $configData['type'], true)) {
-                return $configData['levels'][$itemData->getLevel()]['conditions'] ?? [];
+                return $configData['levels'][$itemData['level']]['conditions'] ?? [];
             }
+            return [];
         });
     }
 
@@ -179,4 +195,107 @@ final class Utils {
         return $result;
     }
     
+    public static function updateGlowEffect(Item $item): void {
+        $root = $item->getNamedTag();
+        $martianCES = $root->getCompoundTag("MartianCES");
+        $vanillaEnchants = $item->getEnchantments(); 
+        
+        if (($martianCES !== null && $martianCES->count() > 0) && count($vanillaEnchants) === 0) {
+            self::applyDisplayEnchant($item); 
+        } elseif (count($vanillaEnchants) > 0 || ($martianCES !== null && $martianCES->count() > 0)) {
+            self::applyDisplayEnchant($item);
+        } else {
+            self::removeDisplayEnchant($item);
+        }
+    }
+
+    public static function removeEnchantmentEffects(Player $player, array $enchantmentData): void {
+        $level = $enchantmentData['level'] ?? 1;
+        if (!isset($enchantmentData['config']['levels'][$level]['effects'])) {
+            return;
+        }
+        
+        $effects = $enchantmentData['config']['levels'][$level]['effects'];
+        foreach ($effects as $effectData) {
+            if (strtoupper($effectData['type'] ?? '') === 'ADD_POTION' && isset($effectData['potion'])) {
+                $potionEffect = StringToEffectParser::getInstance()->parse($effectData['potion']);
+                if ($potionEffect !== null) {
+                    $player->getEffects()->remove($potionEffect);
+                }
+            }
+        }
+    }    
+    
+    public static function onInventorySlotChange(PlayerInventory $inventory, int $slot, Item $oldItem): void {
+        $player = $inventory->getHolder();
+        
+        if ($player instanceof Player) {
+            $heldSlot = $player->getInventory()->getHeldItemIndex();
+            $newItem = $inventory->getItem($slot);
+    
+            if ($slot === $heldSlot) {
+                if (!$oldItem->equals($newItem, false)) { 
+                    if (!$oldItem->isNull()) {
+                        $oldEnchantments = self::extractEnchantmentsFromItems([$oldItem]);
+                        foreach ($oldEnchantments as $enchantment) {
+                            self::removeEnchantmentEffects($player, $enchantment);
+                        }
+                    }
+                }
+    
+                if (!$newItem->isNull()) {
+                    $newEnchantments = self::extractEnchantmentsFromItems([$newItem]);
+                    if (!empty($newEnchantments)) {
+                        (new HeldTrigger())->execute($player, null, $newEnchantments, "HELD", []);
+                    }
+                }
+            }
+        }
+    }    
+
+    public static function onArmorSlotChange(ArmorInventory $inventory, int $slot, Item $oldItem): void {
+        $player = $inventory->getHolder();
+        if (!$player instanceof Player) return;
+
+        $newItem = $inventory->getItem($slot);
+        
+        if ($slot > 3) return;
+
+        self::processArmorChange($player, $oldItem, $newItem, $slot);
+    }
+
+    public static  function processArmorChange(Player $player, Item $oldItem, Item $newItem, int $slot): void {
+        if (!$oldItem->isNull()) {
+            self::handleArmorItem($player, $oldItem, $slot, true);
+        }
+
+        if (!$newItem->isNull() && $newItem instanceof Armor) {
+            self::handleArmorItem($player, $newItem, $slot, false);
+        }
+    }
+
+    public static function handleArmorItem(Player $player, Item $item, int $slot, bool $remove): void {
+        $enchantments = self::extractEnchantmentsFromItems([$item]);
+        
+        foreach ($enchantments as $enchantmentData) {
+            if ($enchantmentData['applies_to'] !== 'Armor') continue;
+
+            if ($remove) {
+                EffectTracker::clearSlotEffects($player, $slot);
+            } else {
+                (new EffectStaticTrigger())->execute(
+                    $player,
+                    null,
+                    [$enchantmentData],
+                    "EFFECT_STATIC",
+                    ['slot' => $slot, 'source' => 'armor']
+                );
+            }
+        }
+    }
+
+    public static function isValidTrigger(array $enchantmentData, string $trigger): bool {
+        return isset($enchantmentData['config']['type']) && 
+            in_array($trigger, (array)$enchantmentData['config']['type'], true);
+    }
 }

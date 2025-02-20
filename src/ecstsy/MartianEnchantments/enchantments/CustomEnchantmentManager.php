@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ecstsy\MartianEnchantments\enchantments;
 
 use CustomEnchantmentInstance;
+use ecstsy\MartianEnchantments\utils\Utils;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
 
@@ -17,18 +18,17 @@ final class CustomEnchantmentManager {
         }
         
         $root = $item->getNamedTag();
-
         $enchTag = $root->getCompoundTag("MartianCES");
+        
         if ($enchTag === null) {
             $enchTag = new CompoundTag();
         }
-
+    
         $enchantmentName = $enchantment->getName();
-
         $enchTag->setInt($enchantmentName, $level);
-
         $root->setTag("MartianCES", $enchTag);
-
+    
+        Utils::updateGlowEffect($item);
     }
 
     public static function removeEnchantment(Item $item, CustomEnchantment $enchantment): void {
@@ -44,9 +44,12 @@ final class CustomEnchantmentManager {
 
         if(empty($enchTag->getValue())) {
             $enchTag->removeTag("MartianCES");
+            $root->removeTag("MartianCES"); 
         } else {
             $root->setTag("MartianCES", $enchTag);
         }
+
+        Utils::updateGlowEffect($item);
     }
 
     public function sortEnchantmentsByRarity(array $enchantments): array {

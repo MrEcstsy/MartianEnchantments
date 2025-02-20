@@ -10,6 +10,7 @@ use ecstsy\MartianEnchantments\enchantments\Groups;
 use ecstsy\MartianEnchantments\listeners\EnchantmentListener;
 use ecstsy\MartianEnchantments\utils\Utils;
 use ecstsy\MartianUtilities\managers\LanguageManager;
+use ecstsy\MartianUtilities\UtilityHandler;
 use ecstsy\MartianUtilities\utils\GeneralUtils;
 use JackMD\ConfigUpdater\ConfigUpdater;
 use muqsit\invmenu\InvMenuHandler;
@@ -70,6 +71,10 @@ final class Loader extends PluginBase {
             InvMenuHandler::register($this);
         }
 
+        if(!UtilityHandler::isRegistered()) {
+            UtilityHandler::register($this);
+        }
+        
         if ($config->getNested("economy.enabled") === true) {
             // implement
         } else {
