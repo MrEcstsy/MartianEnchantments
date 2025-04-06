@@ -15,7 +15,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat as C;
 
-final class GiveItemSubcommand extends BaseSubCommand {
+final class GiveItemSubCommand extends BaseSubCommand {
 
     private $availableItems = [
         'slotincreaser', 'whitescroll', 'mystery', 'secret', 'magic',
