@@ -9,7 +9,7 @@ use CortexPE\Commando\BaseCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\AboutSubCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\EnchantSubCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\GiveBookSubCommand;
-use ecstsy\MartianEnchantments\commands\subcommands\GiveItemSubcommand;
+use ecstsy\MartianEnchantments\commands\subcommands\GiveItemSubCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\GiveRCBookSubCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\InfoSubCommand;
 use ecstsy\MartianEnchantments\commands\subcommands\ListSubCommand;
@@ -28,7 +28,7 @@ final class MECommand extends BaseCommand {
         $this->setPermission($this->getPermission());
         $this->registerArgument(0, new IntegerArgument('page', true));
 
-        $this->registerSubCommand(new GiveItemSubcommand(Loader::getInstance(), "giveitem", "Give Plugin Items"));
+        $this->registerSubCommand(new GiveItemSubCommand(Loader::getInstance(), "giveitem", "Give Plugin Items"));
         $this->registerSubCommand(new AboutSubCommand(Loader::getInstance(), "about", "Information about plugin"));
         $this->registerSubCommand(new EnchantSubCommand(Loader::getInstance(), "enchant", "Enchant held item"));
         $this->registerSubCommand(new UnenchantSubCommand(Loader::getInstance(), "unenchant", "Unenchant held item"));
