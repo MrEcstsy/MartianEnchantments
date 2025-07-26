@@ -10,7 +10,8 @@ use ecstsy\MartianEnchantments\triggers\GenericTrigger;
 use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\Utils;
-use ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\utils\managers\CooldownManager;
 use muqsit\arithmexp\Util;
 use pocketmine\entity\Living;
 use pocketmine\entity\projectile\Arrow;
@@ -32,6 +33,7 @@ use pocketmine\item\Armor;
 use pocketmine\item\Item;
 use pocketmine\player\Player;
 use pocketmine\plugin\Plugin;
+use pocketmine\scheduler\ClosureTask;
 
 final class EnchantmentListener implements Listener {
 
@@ -347,7 +349,7 @@ final class EnchantmentListener implements Listener {
             (new GenericTrigger())->execute($player, null, $filteredEnchantments, 'EAT', $extraData);
         }
     }
-
+    
     /**
      * @priority HIGHEST
      */
@@ -424,7 +426,7 @@ final class EnchantmentListener implements Listener {
             }
         }
     }
-    
+            
     /**
      * @priority HIGHEST
      */
@@ -517,7 +519,7 @@ final class EnchantmentListener implements Listener {
         $armorItems = $hitEntity->getArmorInventory()->getContents();
         Utils::handleArrowHitEnchants($shooter, $hitEntity, $armorItems);
     }
-    
+
     /**
      * @priority HIGHEST
      */
@@ -525,48 +527,47 @@ final class EnchantmentListener implements Listener {
         $victim = $event->getEntity();
         $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
 
+        echo "[DEATH] Event triggered for entity: " . $victim->getName() . PHP_EOL;
+
         if (!$victim instanceof Living || $victim->isAlive()) {
+            echo "[DEATH] Skipped: not a living or still alive" . PHP_EOL;
             return;
         }
 
         $cause = $victim->getLastDamageCause();
+        $attacker = null;
 
         if ($cause instanceof EntityDamageByEntityEvent) {
-            $attacker = $cause->getDamager();
+            $damager = $cause->getDamager();
+            if ($damager instanceof Player) {
+                $attacker = $damager;
+            }
+        }
 
-            if ($attacker instanceof Player) {
-                $item = $attacker->getInventory()->getItemInHand();
-                $enchantments = Utils::getEffectsFromItems([$item], "DEATH", $config);
+        $victimItems = [];
+        if ($victim instanceof Player) {
+            $victimItems[] = $victim->getInventory()->getItemInHand();
+        }
+        $victimItems = array_merge($victimItems, $victim->getArmorInventory()->getContents());
 
-                if (empty($enchantments)) {
-                    return;
-                }
+        $victimEnchants = Utils::getEffectsFromItems($victimItems, "DEATH", $config);
 
-                $filteredEnchantments = [];
-                foreach ($enchantments as $enchantmentConfig) {
-                    $contextType = $enchantmentConfig['config']['type'] ?? [];
+        if (!empty($victimEnchants)) {
+            echo "[DEATH] Found " . count($victimEnchants) . " victim-side DEATH enchants" . PHP_EOL;
+            (new GenericTrigger())->execute($victim, $attacker, $victimEnchants, "DEATH");
+        } else {
+            echo "[DEATH] No victim-side DEATH enchants" . PHP_EOL;
+        }
 
-                    if (!in_array("DEATH", $contextType, true)) {
-                        continue;
-                    }
+        if ($attacker instanceof Player) {
+            $attackerItems = [$attacker->getInventory()->getItemInHand()];
+            $attackerEnchants = Utils::getEffectsFromItems($attackerItems, "DEATH", $config);
 
-                    $level = $enchantmentConfig['level'] ?? 1;
-                    $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
-                    $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-
-                    $extraData = [
-                        'enchant-level' => $level,
-                        'chance' => $chance,
-                        'enchant-name' => $enchantName
-                    ];
-
-                    $filteredEnchantments[] = $enchantmentConfig;
-                }
-
-                if (!empty($filteredEnchantments)) {
-                    $trigger = new GenericTrigger();
-                    $trigger->execute($attacker, $victim, $filteredEnchantments, 'DEATH', $extraData);
-                }
+            if (!empty($attackerEnchants)) {
+                echo "[DEATH] Found " . count($attackerEnchants) . " attacker-side DEATH enchants" . PHP_EOL;
+                (new GenericTrigger())->execute($attacker, $victim, $attackerEnchants, "DEATH");
+            } else {
+                echo "[DEATH] No attacker-side DEATH enchants" . PHP_EOL;
             }
         }
     }
@@ -600,6 +601,12 @@ final class EnchantmentListener implements Listener {
     
     /**
      * @priority HIGHEST
+     * 
+     * TODO: Make reliability better, occasionally
+     *  doesnt detect shift clicking to equip &
+     *  never detects right clicking in hand...
+     * 
+     * MartianEnchants/Utils.php (line 255-305) (is paired with armor inv listener)
      */
     public function onInventoryTransaction(InventoryTransactionEvent $event): void {
         $transaction = $event->getTransaction();
