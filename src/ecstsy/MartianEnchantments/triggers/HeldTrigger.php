@@ -26,7 +26,8 @@ final class HeldTrigger implements TriggerInterface {
             
             $enchantmentName = $enchantmentData['name'] ?? 'unknown';
             $level = $enchantmentData['level'] ?? 1;
-            $chance = $enchantmentData['config']['levels'][$level]['chance'] ?? 100;
+            $levelConfig = $enchantmentData['config']['levels'][$level] ?? [];
+            $chance = $levelConfig['chance'] ?? 100;
 
             $extraData = [
                 'enchant-name' => $enchantmentName,
@@ -38,13 +39,19 @@ final class HeldTrigger implements TriggerInterface {
                 continue;
             }
 
-            $this->applyEffects(
-                $enchantmentData['config']['levels'][$level],
-                $attacker,
-                null,
-                "HELD",
-                $extraData
-            );
+            $conditionsMet = true;
+            if (!empty($levelConfig['conditions'])) {
+                foreach ($levelConfig['conditions'] as $condition) {
+                    if (!$this->handleConditions($condition, $attacker, null, $context, $extraData)) {
+                        $conditionsMet = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($conditionsMet) {
+                $this->applyEffects($levelConfig, $attacker, null, "HELD", $extraData);
+            }
         }
     }
 }
