@@ -606,7 +606,7 @@ final class EnchantmentListener implements Listener {
      *  doesnt detect shift clicking to equip &
      *  never detects right clicking in hand...
      * 
-     * MartianEnchants/Utils.php (line 255-305) (is paired with armor inv listener)
+     * MartianEnchants/utils/Utils.php (line 255-305) (is paired with armor inv listener)
      */
     public function onInventoryTransaction(InventoryTransactionEvent $event): void {
         $transaction = $event->getTransaction();
