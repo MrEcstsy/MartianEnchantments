@@ -14,7 +14,17 @@ class GenericTrigger implements TriggerInterface {
     use TriggerHelper;
     
     public function execute(Entity $attacker, ?Entity $victim, array $enchantments, string $context, array $extraData = []): void {
+            if($victim === null) {
+                $victim = $attacker;
+            }
+
         foreach ($enchantments as $enchantmentData) {
+            $types = array_map('strtoupper', $enchantmentData['config']['type'] ?? []);
+            
+            if (in_array("HELD", $types, true) || in_array("EFFECT_STATIC", $types, true)) {
+                continue;
+            }
+
             $level = $extraData['enchant-level'] ?? null;
             if ($level === null) {
                 continue;
