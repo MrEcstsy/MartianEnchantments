@@ -102,7 +102,7 @@ final class EnchantmentListener implements Listener {
                 'chance' => $chance,
                 'enchant-name' => $enchantName
             ];
-    
+     
             $filteredEnchantments[] = $enchantmentConfig; 
         }
     
@@ -264,103 +264,47 @@ final class EnchantmentListener implements Listener {
     /**
      * @priority HIGHEST
      */
-    public function onDefenseMobProjectile(EntityDamageByEntityEvent $event): void {
-        if ($event->isCancelled()) {
-            return;
-        }
-    
-        $victim = $event->getEntity();
-        $attacker = $event->getDamager();
-    
-        if (!$victim instanceof Living) {
-            return;
-        }
-    
-        if ($attacker instanceof Projectile && $attacker->getOwningEntity() instanceof Living) {
-            $armorItems = $victim->getArmorInventory()->getContents();
-            $enchantments = Utils::extractEnchantmentsFromItems($armorItems);
-    
-            if (empty($enchantments)) {
-                return;
-            }
-    
-            $filteredEnchantments = [];
-            foreach ($enchantments as $enchantmentConfig) {
-                $contextType = $enchantmentConfig['config']['type'] ?? [];
-    
-                if (!in_array("DEFENSE_MOB_PROJECTILE", $contextType, true)) {
-                    continue;
-                }
-    
-                $level = $enchantmentConfig['level'] ?? 1;
-                $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
-                $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-    
-                $extraData = [
-                    'enchant-level' => $level,
-                    'chance'        => $chance,
-                    'enchant-name'  => $enchantName
-                ];
-    
-                $filteredEnchantments[] = $enchantmentConfig;
-            }
-    
-            if (!empty($filteredEnchantments)) {
-                $trigger = new GenericTrigger();
-                $trigger->execute($attacker, $victim, $filteredEnchantments, 'DEFENSE_MOB_PROJECTILE', $extraData);
-            }
-        }
-    }
+    public function onAnyProjectileHit(ProjectileHitEntityEvent $event): void {
+        $projectile = $event->getEntity();
+        $victim = $event->getEntityHit();
+        $shooter = $projectile->getOwningEntity();
 
-    /**
-     * @priority HIGHEST
-     */
-    public function onPlayerProjectileDefend(EntityDamageByEntityEvent $event): void {
-        if ($event->isCancelled()) {
+        if (!$projectile instanceof Projectile) {
             return;
         }
-    
-        $victim = $event->getEntity();
-        $attacker = $event->getDamager();
-    
+
         if (!$victim instanceof Living) {
             return;
         }
-    
-        if ($attacker instanceof Projectile && $attacker->getOwningEntity() instanceof Player) {
-            $armorItems = $victim->getArmorInventory()->getContents();
-            $enchantments = Utils::extractEnchantmentsFromItems($armorItems);
-    
-            if (empty($enchantments)) {
-                return;
-            }
-    
-            $filteredEnchantments = [];
-            foreach ($enchantments as $enchantmentConfig) {
-                $contextType = $enchantmentConfig['config']['type'] ?? [];
-    
-                if (!in_array("DEFENSE_PROJECTILE", $contextType, true)) {
-                    continue;
-                }
-    
-                $level = $enchantmentConfig['level'] ?? 1;
-                $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
-                $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-    
-                $extraData = [
-                    'enchant-level' => $level,
-                    'chance'        => $chance,
-                    'enchant-name'  => $enchantName
-                ];
-    
-                $filteredEnchantments[] = $enchantmentConfig;
-            }
-    
-            if (!empty($filteredEnchantments)) {
-                $trigger = new GenericTrigger();
-                $trigger->execute($attacker, $victim, $filteredEnchantments, 'DEFENSE_PROJECTILE', $extraData);
-            }
+
+        if (!$shooter instanceof Player) {
+            return;
         }
+
+        $armorItems = $victim->getArmorInventory()->getContents();
+        $enchants = Utils::extractEnchantmentsFromItems($armorItems);
+
+        $filtered = [];
+        $extraData = [];
+        foreach ($enchants as $cfg) {
+            $types = $cfg['config']['type'] ?? [];
+
+            if (!in_array("DEFENSE_PROJECTILE", $types, true)) {
+                continue;
+            }
+
+            $level = $cfg['level'] ?? 1;
+            $filtered[] = $cfg;
+            $extraData = [
+                'enchant-name' => $cfg['name'] ?? 'unknown',
+                'enchant-level' => $level,
+                'chance' => $cfg['config']['levels'][$level]['chance'] ?? 100,
+            ];
+        }
+
+        if (!empty($filtered)) {
+            (new GenericTrigger())->execute($shooter, $victim, $filtered, 'DEFENSE_PROJECTILE', $extraData);
+        } 
     }
 
     /**
@@ -368,39 +312,39 @@ final class EnchantmentListener implements Listener {
      */
     public function onPlayerEat(PlayerItemConsumeEvent $event): void {
         $player = $event->getPlayer();
-    
-        $item = $event->getItem();
-    
-        $enchantments = Utils::extractEnchantmentsFromItems([$item]);
-    
+
+        $armorItems = $player->getArmorInventory()->getContents();
+        $enchantments = Utils::extractEnchantmentsFromItems($armorItems);
+
         if (empty($enchantments)) {
             return;
         }
-    
+
         $filteredEnchantments = [];
+        $extraData = [];
+
         foreach ($enchantments as $enchantmentConfig) {
             $contextType = $enchantmentConfig['config']['type'] ?? [];
-    
+
             if (!in_array("EAT", $contextType, true)) {
                 continue;
             }
-    
+
             $level = $enchantmentConfig['level'] ?? 1;
             $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
             $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-    
+
             $extraData = [
                 'enchant-level' => $level,
-                'chance'        => $chance,
-                'enchant-name'  => $enchantName
+                'chance' => $chance,
+                'enchant-name' => $enchantName
             ];
-    
+
             $filteredEnchantments[] = $enchantmentConfig;
         }
-    
+
         if (!empty($filteredEnchantments)) {
-            $trigger = new GenericTrigger();
-            $trigger->execute($player, null, $filteredEnchantments, 'EAT', $extraData);
+            (new GenericTrigger())->execute($player, null, $filteredEnchantments, 'EAT', $extraData);
         }
     }
 
@@ -411,69 +355,72 @@ final class EnchantmentListener implements Listener {
         if ($event->isCancelled()) {
             return;
         }
-    
+
         $entity = $event->getEntity();
         if (!$entity instanceof Living) {
             return;
         }
-    
-        $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
-        $miscTriggers = ["FALL_DAMAGE", "EXPLOSION", "FIRE"];
-        $armorItems = $entity->getArmorInventory()->getContents();
-    
-        foreach ($miscTriggers as $trigger) {
-            $effects = Utils::getEffectsFromItems($armorItems, $trigger, $config);
-    
-            foreach ($effects as $effect) {
-                if (($trigger === "FALL_DAMAGE" && $event->getCause() === EntityDamageEvent::CAUSE_FALL) ||
-                    ($trigger === "EXPLOSION" && $event->getCause() === EntityDamageEvent::CAUSE_BLOCK_EXPLOSION)||
-                    ($trigger === "FIRE" && ($event->getCause() === EntityDamageEvent::CAUSE_FIRE || $event->getCause() === EntityDamageEvent::CAUSE_FIRE_TICK))) {
-    
-                    $enchantments = Utils::extractEnchantmentsFromItems($armorItems);
-    
-                    if (empty($enchantments)) {
-                        continue;
-                    }
-    
-                    $filteredEnchantments = [];
-                    foreach ($enchantments as $enchantmentConfig) {
-                        $contextType = $enchantmentConfig['config']['type'] ?? [];
-    
-                        if (!in_array($trigger, $contextType, true)) {
-                            continue; 
-                        }
-    
-                        $level = $enchantmentConfig['level'] ?? 1;
-                        $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
-                        $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-    
-                        $extraData = [
-                            'enchant-level' => $level,
-                            'chance'        => $chance,
-                            'enchant-name'  => $enchantName
-                        ];
-    
-                        $filteredEnchantments[] = $enchantmentConfig;
-                    }
-    
-                    if (!empty($filteredEnchantments)) {
-                        $triggerObject = new GenericTrigger();
-                        $triggerObject->execute($entity, null, $filteredEnchantments, $trigger, $extraData);
 
-                        if (isset($effect['type']) && $effect['type'] === "CANCEL_EVENT") {
-                            $chance = $effect['chance'] ?? 100;
-                    
-                            if (mt_rand(0, 100) <= $chance) {
-                                $extraData = ['chance' => $chance];
-                    
-                                $conditionsMet = $this->handleConditions($effect['conditions'] ?? [], $entity, null, $trigger, $extraData);
-                                if ($conditionsMet) {
-                                    $event->cancel();
-                                }
-                            }
+        $cause = $event->getCause();
+        $armorItems = $entity->getArmorInventory()->getContents();
+
+        $triggers = [
+            "FALL_DAMAGE" => EntityDamageEvent::CAUSE_FALL,
+            "EXPLOSION" => [EntityDamageEvent::CAUSE_BLOCK_EXPLOSION, EntityDamageEvent::CAUSE_ENTITY_EXPLOSION],
+            "FIRE" => [EntityDamageEvent::CAUSE_FIRE, EntityDamageEvent::CAUSE_FIRE_TICK],
+        ];
+
+        foreach ($triggers as $trigger => $expected) {
+            $matchesCause = is_array($expected)
+                ? in_array($cause, $expected, true)
+                : $cause === $expected;
+            if (!$matchesCause) {
+                continue;
+            }
+
+            $allEnchants = Utils::extractEnchantmentsFromItems($armorItems);
+            $toTrigger = [];
+            $extraData = [];
+
+            foreach ($allEnchants as $enchant) {
+                $types = $enchant['config']['type'] ?? [];
+                if (!in_array($trigger, $types, true)) {
+                    continue;
+                }
+
+                $level = $enchant['level'] ?? 1;
+                $levelCfg = $enchant['config']['levels'][$level] ?? [];
+                $chance = $levelCfg['chance'] ?? 100;
+                $name = $enchant['name']    ?? 'unknown';
+
+                $extraData = [
+                    'enchant-name' => $name,
+                    'enchant-level' => $level,
+                    'chance' => $chance,
+                ];
+
+                foreach ($levelCfg['effects'] as $effect) {
+                    if (($effect['type'] ?? '') !== "CANCEL_EVENT") continue;
+                    if (CooldownManager::isOnCooldown($entity, $name)) continue;
+
+                    if (mt_rand(1, 100) <= $chance) {
+                        $conds = $effect['conditions'] ?? [];
+                        $condsMet = empty($conds)
+                            ? true
+                            : $this->handleConditions($conds, $entity, null, $trigger, $extraData);
+                        if ($condsMet) {
+                            $event->cancel();
+                            CooldownManager::setCooldown($entity, $name, $levelCfg['cooldown'] ?? 0);
+                            return;
                         }
                     }
                 }
+
+                $toTrigger[] = $enchant;
+            }
+
+            if (!empty($toTrigger)) {
+                (new GenericTrigger())->execute($entity, null, $toTrigger, $trigger, $extraData);
             }
         }
     }
@@ -558,48 +505,19 @@ final class EnchantmentListener implements Listener {
         $hitEntity = $event->getEntityHit();
         $shooter = $projectile->getOwningEntity();
 
-        if (!$shooter instanceof Player || !$hitEntity instanceof Living || !$projectile instanceof Arrow) {
+        if (!$projectile instanceof Arrow || !$shooter instanceof Player || !$hitEntity instanceof Living) {
             return;
         }
 
         $bow = $shooter->getInventory()->getItemInHand();
-        if ($bow->isNull()) {
-            return;
-        }
+        if (!$bow->isNull()) {
+            Utils::handleArrowHitEnchants($shooter, $hitEntity, [$bow]);
+        } 
 
-        $enchantments = Utils::extractEnchantmentsFromItems([$bow]);
-        
-        if (empty($enchantments)) {
-            return;
-        }
-
-        $filteredEnchantments = [];
-        foreach ($enchantments as $enchantmentConfig) {
-            $contextType = $enchantmentConfig['config']['type'] ?? [];
-            
-            if (!in_array("ARROW_HIT", $contextType, true)) {
-                continue;
-            }
-
-            $level = $enchantmentConfig['level'] ?? 1;
-            $chance = $enchantmentConfig['config']['levels'][$level]['chance'] ?? 100;
-            $enchantName = $enchantmentConfig['name'] ?? 'unknown';
-
-            $extraData = [
-                'enchant-level' => $level,
-                'chance' => $chance,
-                'enchant-name' => $enchantName
-            ];
-
-            $filteredEnchantments[] = $enchantmentConfig;
-        }
-
-        if (!empty($filteredEnchantments)) {
-            $trigger = new GenericTrigger();
-            $trigger->execute($shooter, $hitEntity, $filteredEnchantments, 'ARROW_HIT', $extraData);
-        }
+        $armorItems = $hitEntity->getArmorInventory()->getContents();
+        Utils::handleArrowHitEnchants($shooter, $hitEntity, $armorItems);
     }
-
+    
     /**
      * @priority HIGHEST
      */
