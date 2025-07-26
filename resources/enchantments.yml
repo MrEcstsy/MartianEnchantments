@@ -223,3 +223,48 @@ armoraura:
           potion: "resistance"
           amplifier: 0
           target: attacker
+sneakstrike:
+  display: "{group-color}Sneak Strike"
+  description:
+    - "Extra damage when sneaking."
+  applies-to: Swords
+  type:
+    - ATTACK
+  group: ELITE
+  applies:
+    - ALL_SWORD
+  levels:
+    '1':
+      cooldown: 10
+      conditions:
+        - type: IS_SNEAKING
+          target: attacker
+          condition_mode: allow
+      effects:
+        - type: ADD_HEALTH
+          amount: "{5-10}"
+          target: attacker
+holdpower:
+  display: "{group-color}Hold Power"
+  description:
+    - "Shows message when sneaking before holding"
+  applies-to: Pickaxe
+  type:
+    - HELD
+  group: SIMPLE
+  applies:
+    - ALL_PICKAXE
+  levels:
+    '1':
+      conditions:
+        - type: IS_HOLDING
+          target: attacker
+          value: pickaxe
+          condition_mode: continue
+        - type: IS_SNEAKING
+          target: attacker
+          condition_mode: allow
+      effects:
+        - type: ACTION_BAR
+          text: "&ePower Active!"
+          target: attacker
