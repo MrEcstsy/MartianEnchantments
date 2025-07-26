@@ -171,3 +171,55 @@ feast:
         - type: ADD_FOOD
           amount: 3
           target: victim
+featherfall:
+  display: "{group-color}Featherfall"
+  description:
+    - "Negates fall damage"
+    - "once per cooldown."
+  applies-to: Boots
+  type:
+    - FALL_DAMAGE
+  group: ELITE
+  applies:
+    - BOOTS
+  levels:
+    '1':
+      cooldown: 15
+      effects:
+        - type: CANCEL_EVENT
+haste:
+  display: "{group-color}Haste"
+  description:
+    - "Grants Haste while held."
+  applies-to: Pickaxe
+  type:
+    - HELD
+  group: UNIQUE
+  applies:
+    - ALL_PICKAXE
+  levels:
+    '1':
+      cooldown: 0
+      effects:
+        - type: ADD_POTION
+          potion: "haste"
+          amplifier: 1
+          target: attacker
+armoraura:
+  display: "{group-color}Armor Aura"
+  description:
+    - "Gives Resistance when armor is worn."
+  applies-to: Armor
+  type:
+    - EFFECT_STATIC
+  group: ULTIMATE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 0
+      effects:
+        - type: ADD_POTION
+          potion: "resistance"
+          amplifier: 0
+          target: attacker
