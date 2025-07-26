@@ -21,6 +21,11 @@ final class EffectStaticTrigger implements TriggerInterface {
         }
         
         foreach ($enchantments as $enchantmentData) {
+            $types = $enchantmentData['config']['type'] ?? [];
+            if (!in_array("EFFECT_STATIC", array_map('strtoupper', $types), true)) {
+                continue;
+            }
+
             if (($enchantmentData['config']['applies-to'] ?? '') !== 'Armor') {
                 continue;
             }

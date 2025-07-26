@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\utils;
 
-use ecstsy\AdvancedEnchantments\Enchantments\CustomEnchantmentIds;
 use ecstsy\MartianEnchantments\conditions\IsHoldingCondition;
 use ecstsy\MartianEnchantments\conditions\IsSneakingCondition;
 use ecstsy\MartianEnchantments\effects\ActionBarEffect;
@@ -23,12 +22,11 @@ use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\registries\ConditionRegistry;
 use ecstsy\MartianEnchantments\utils\registries\EffectRegistry;
 use ecstsy\MartianEnchantments\utils\registries\TriggerRegistry;
-use ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use pocketmine\entity\effect\StringToEffectParser;
-use pocketmine\entity\effect\VanillaEffects;
+use pocketmine\entity\Entity;
 use pocketmine\inventory\ArmorInventory;
-use pocketmine\inventory\Inventory;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\item\Armor;
 use pocketmine\item\enchantment\EnchantmentInstance;
@@ -297,5 +295,35 @@ final class Utils {
     public static function isValidTrigger(array $enchantmentData, string $trigger): bool {
         return isset($enchantmentData['config']['type']) && 
             in_array($trigger, (array)$enchantmentData['config']['type'], true);
+    }
+
+    public static function handleArrowHitEnchants(Entity $attacker, ?Entity $victim, array $items): void {
+        $enchants = Utils::extractEnchantmentsFromItems($items);
+        $filtered = [];
+        $extra = [];
+
+        foreach ($enchants as $cfg) {
+            $types = $cfg['config']['type'] ?? [];
+
+            if (!in_array("ARROW_HIT", $types, true)) {
+                continue;
+            }
+
+            $level  = $cfg['level'] ?? 1;
+            $chance = $cfg['config']['levels'][$level]['chance'] ?? 100;
+            $name   = $cfg['name'] ?? 'unknown';
+
+            $extra = [
+                'enchant-level' => $level,
+                'chance'        => $chance,
+                'enchant-name'  => $name,
+            ];
+
+            $filtered[] = $cfg;
+        }
+
+        if (!empty($filtered)) {
+            (new GenericTrigger())->execute($attacker, $victim, $filtered, 'ARROW_HIT', $extra);
+        }
     }
 }

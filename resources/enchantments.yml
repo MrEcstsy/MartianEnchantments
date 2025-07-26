@@ -48,3 +48,223 @@ lifesteal:
         - type: STEAL_HEALTH
           amount: "{1-5}"
           target: attacker      
+    '6':
+      chance: 50
+      cooldown: 10
+      effects:
+        - type: STEAL_HEALTH
+          amount: "{1-5}"
+          target: attacker
+        - type: MESSAGE
+          text: "&r&cYOU STOLE HEARTS FROM {victim}"
+          target: attacker
+laststand:
+  display: "{group-color}Last Stand"
+  description:
+    - "Heals you when a mob"
+    - "hits you"
+  applies-to: Armor
+  type:
+    - DEFENSE_MOB
+  group: ULTIMATE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 10
+      effects:
+        - type: ADD_HEALTH
+          amount: "{2-4}"
+flameguard:
+  display: "{group-color}Flame Guard"
+  description:
+    - "When hit by a projectile,"
+    - "burns the shooter"
+  applies-to: Armor
+  type:
+    - DEFENSE_PROJECTILE
+  group: ELITE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 10
+      effects:
+        - type: BURN
+          seconds: 3
+          target: attacker
+        - type: ACTION_BAR
+          text: "&r&cYou are protected by Flame Guard!"
+          target: victim
+blastproof:
+  display: "{group-color}Blastproof"
+  description:
+    - "Negates explosion damage"
+    - "once every cooldown"
+  applies-to: Armor
+  type:
+    - EXPLOSION
+  group: ELITE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 20
+      effects:
+        - type: CANCEL_EVENT
+ember:
+  display: "{group-color}Ember"
+  description:
+    - "Adds food when you're"
+    - "burning."
+  applies-to: Chestplate
+  type:
+    - FIRE
+  group: UNIQUE
+  applies:
+    - CHESTPLATE
+  levels:
+    '1':
+      cooldown: 5
+      effects:
+        - type: ADD_FOOD
+          amount: 20
+          target: victim
+        - type: ACTION_BAR
+          text: "&r&ayou have gained 20 food from Ember!"
+          target: victim
+thorns:
+  display: "{group-color}Thorns"
+  description:
+    - "Reflects a bit of damage"
+    - "back to arrow shooters."
+  applies-to: Armor
+  type:
+    - ARROW_HIT
+  group: ELITE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 6
+      effects:
+        - type: ADD_POTION
+          potion: "slowness"
+          duration: 60
+          amplifier: 0
+          target: attacker
+feast:
+  display: "{group-color}Feast"
+  description:
+    - "Gives extra hunger"
+    - "when you eat."
+  applies-to: Helmet
+  type:
+    - EAT
+  group: SIMPLE
+  applies:
+    - HELMET
+  levels:
+    '1':
+      cooldown: 5
+      effects:
+        - type: ADD_FOOD
+          amount: 3
+          target: victim
+featherfall:
+  display: "{group-color}Featherfall"
+  description:
+    - "Negates fall damage"
+    - "once per cooldown."
+  applies-to: Boots
+  type:
+    - FALL_DAMAGE
+  group: ELITE
+  applies:
+    - BOOTS
+  levels:
+    '1':
+      cooldown: 15
+      effects:
+        - type: CANCEL_EVENT
+haste:
+  display: "{group-color}Haste"
+  description:
+    - "Grants Haste while held."
+  applies-to: Pickaxe
+  type:
+    - HELD
+  group: UNIQUE
+  applies:
+    - ALL_PICKAXE
+  levels:
+    '1':
+      cooldown: 0
+      effects:
+        - type: ADD_POTION
+          potion: "haste"
+          amplifier: 1
+          target: attacker
+armoraura:
+  display: "{group-color}Armor Aura"
+  description:
+    - "Gives Resistance when armor is worn."
+  applies-to: Armor
+  type:
+    - EFFECT_STATIC
+  group: ULTIMATE
+  applies:
+    - ALL_ARMOR
+  levels:
+    '1':
+      cooldown: 0
+      effects:
+        - type: ADD_POTION
+          potion: "resistance"
+          amplifier: 0
+          target: attacker
+sneakstrike:
+  display: "{group-color}Sneak Strike"
+  description:
+    - "Extra damage when sneaking."
+  applies-to: Swords
+  type:
+    - ATTACK
+  group: ELITE
+  applies:
+    - ALL_SWORD
+  levels:
+    '1':
+      cooldown: 10
+      conditions:
+        - type: IS_SNEAKING
+          target: attacker
+          condition_mode: allow
+      effects:
+        - type: ADD_HEALTH
+          amount: "{5-10}"
+          target: attacker
+holdpower:
+  display: "{group-color}Hold Power"
+  description:
+    - "Shows message when sneaking before holding"
+  applies-to: Pickaxe
+  type:
+    - HELD
+  group: SIMPLE
+  applies:
+    - ALL_PICKAXE
+  levels:
+    '1':
+      conditions:
+        - type: IS_HOLDING
+          target: attacker
+          value: pickaxe
+          condition_mode: continue
+        - type: IS_SNEAKING
+          target: attacker
+          condition_mode: allow
+      effects:
+        - type: ACTION_BAR
+          text: "&ePower Active!"
+          target: attacker

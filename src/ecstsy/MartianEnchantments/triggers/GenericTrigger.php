@@ -4,7 +4,6 @@ namespace ecstsy\MartianEnchantments\triggers;
 
 use ecstsy\MartianEnchantments\utils\managers\CooldownManager;
 use ecstsy\MartianEnchantments\utils\managers\EnchantmentDisableManager;
-use ecstsy\MartianEnchantments\utils\registries\ConditionRegistry;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\TriggerInterface;
 use pocketmine\entity\Entity;
@@ -14,7 +13,17 @@ class GenericTrigger implements TriggerInterface {
     use TriggerHelper;
     
     public function execute(Entity $attacker, ?Entity $victim, array $enchantments, string $context, array $extraData = []): void {
+        if ($victim === null) {
+            $victim = $attacker;
+        }
+
         foreach ($enchantments as $enchantmentData) {
+            $types = array_map('strtoupper', $enchantmentData['config']['type'] ?? []);
+            
+            if (in_array("HELD", $types, true) || in_array("EFFECT_STATIC", $types, true)) {
+                continue;
+            }
+
             $level = $extraData['enchant-level'] ?? null;
             if ($level === null) {
                 continue;
@@ -53,31 +62,9 @@ class GenericTrigger implements TriggerInterface {
             
             if (!empty($levelConfig['conditions'])) {
                 foreach ($levelConfig['conditions'] as $condition) {
-                    $target = $condition['target'] === 'victim' ? $victim : $attacker;
-                    if (!$target instanceof Player) {
-                        break;
-                    }
-        
-                    $conditionData = array_merge($extraData, ['chance' => $adjustedChance]);
-                    $conditionHandler = ConditionRegistry::get($condition['type']);
-                    if ($conditionHandler === null) {
-                        throw new \RuntimeException("Unknown condition type: {$condition['type']}");
-                    }
-        
-                    $result = $conditionHandler->check($attacker, $victim, $condition, $context, $extraData);
-                    $adjustedChance = $conditionData['chance'] ?? $adjustedChance;
-                    $conditionMode = strtolower($condition['condition_mode'] ?? 'allow');
-        
-                    if ($conditionMode === 'force') {
-                        if ($result) {
-                            $forceTriggered = true;
-                            break;
-                        } else {
-                            $forceTriggered = false;
-                        }
-                    } elseif (!$result) {
+                    if (!$this->handleConditions($condition, $attacker, $victim, $context, $extraData)) {
                         $conditionsMet = false;
-                        break; 
+                        break;
                     }
                 }
             }
