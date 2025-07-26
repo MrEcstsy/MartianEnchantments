@@ -523,54 +523,54 @@ final class EnchantmentListener implements Listener {
     /**
      * @priority HIGHEST
      */
-    public function onEntityDeath(EntityDeathEvent $event): void {
-        $victim = $event->getEntity();
-        $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
+    // public function onEntityDeath(EntityDeathEvent $event): void {
+    //     $victim = $event->getEntity();
+    //     $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
 
-        echo "[DEATH] Event triggered for entity: " . $victim->getName() . PHP_EOL;
+    //     echo "[DEATH] Event triggered for entity: " . $victim->getName() . PHP_EOL;
 
-        if (!$victim instanceof Living || $victim->isAlive()) {
-            echo "[DEATH] Skipped: not a living or still alive" . PHP_EOL;
-            return;
-        }
+    //     if (!$victim instanceof Living || $victim->isAlive()) {
+    //         echo "[DEATH] Skipped: not a living or still alive" . PHP_EOL;
+    //         return;
+    //     }
 
-        $cause = $victim->getLastDamageCause();
-        $attacker = null;
+    //     $cause = $victim->getLastDamageCause();
+    //     $attacker = null;
 
-        if ($cause instanceof EntityDamageByEntityEvent) {
-            $damager = $cause->getDamager();
-            if ($damager instanceof Player) {
-                $attacker = $damager;
-            }
-        }
+    //     if ($cause instanceof EntityDamageByEntityEvent) {
+    //         $damager = $cause->getDamager();
+    //         if ($damager instanceof Player) {
+    //             $attacker = $damager;
+    //         }
+    //     }
 
-        $victimItems = [];
-        if ($victim instanceof Player) {
-            $victimItems[] = $victim->getInventory()->getItemInHand();
-        }
-        $victimItems = array_merge($victimItems, $victim->getArmorInventory()->getContents());
+    //     $victimItems = [];
+    //     if ($victim instanceof Player) {
+    //         $victimItems[] = $victim->getInventory()->getItemInHand();
+    //     }
+    //     $victimItems = array_merge($victimItems, $victim->getArmorInventory()->getContents());
 
-        $victimEnchants = Utils::getEffectsFromItems($victimItems, "DEATH", $config);
+    //     $victimEnchants = Utils::getEffectsFromItems($victimItems, "DEATH", $config);
 
-        if (!empty($victimEnchants)) {
-            echo "[DEATH] Found " . count($victimEnchants) . " victim-side DEATH enchants" . PHP_EOL;
-            (new GenericTrigger())->execute($victim, $attacker, $victimEnchants, "DEATH");
-        } else {
-            echo "[DEATH] No victim-side DEATH enchants" . PHP_EOL;
-        }
+    //     if (!empty($victimEnchants)) {
+    //         echo "[DEATH] Found " . count($victimEnchants) . " victim-side DEATH enchants" . PHP_EOL;
+    //         (new GenericTrigger())->execute($victim, $attacker, $victimEnchants, "DEATH");
+    //     } else {
+    //         echo "[DEATH] No victim-side DEATH enchants" . PHP_EOL;
+    //     }
 
-        if ($attacker instanceof Player) {
-            $attackerItems = [$attacker->getInventory()->getItemInHand()];
-            $attackerEnchants = Utils::getEffectsFromItems($attackerItems, "DEATH", $config);
+    //     if ($attacker instanceof Player) {
+    //         $attackerItems = [$attacker->getInventory()->getItemInHand()];
+    //         $attackerEnchants = Utils::getEffectsFromItems($attackerItems, "DEATH", $config);
 
-            if (!empty($attackerEnchants)) {
-                echo "[DEATH] Found " . count($attackerEnchants) . " attacker-side DEATH enchants" . PHP_EOL;
-                (new GenericTrigger())->execute($attacker, $victim, $attackerEnchants, "DEATH");
-            } else {
-                echo "[DEATH] No attacker-side DEATH enchants" . PHP_EOL;
-            }
-        }
-    }
+    //         if (!empty($attackerEnchants)) {
+    //             echo "[DEATH] Found " . count($attackerEnchants) . " attacker-side DEATH enchants" . PHP_EOL;
+    //             (new GenericTrigger())->execute($attacker, $victim, $attackerEnchants, "DEATH");
+    //         } else {
+    //             echo "[DEATH] No attacker-side DEATH enchants" . PHP_EOL;
+    //         }
+    //     }
+    // }
 
     /**
      * @priority HIGHEST
