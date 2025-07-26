@@ -8,32 +8,43 @@ use ecstsy\MartianEnchantments\utils\managers\EnchantmentDisableManager;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\TriggerInterface;
 use pocketmine\entity\Entity;
-use pocketmine\entity\Living;
 use pocketmine\player\Player;
 
 final class HeldTrigger implements TriggerInterface {
     use TriggerHelper;
 
-    public function execute(Entity $attacker, ?Entity $victim, array $enchantments, string $context, array $exteraData = []): void
-    {
-
+    public function execute(Entity $attacker, ?Entity $victim, array $enchantments, string $context, array $exteraData = []): void {
         if (!$attacker instanceof Player) {
             return;
         }
         
         foreach ($enchantments as $enchantmentData) {
-            if (($enchantmentData['config']['applies-to'] ?? '') === 'Armor') {
+            $types = $enchantmentData['config']['type'] ?? [];
+            if (!in_array("HELD", array_map('strtoupper', $types), true)) {
                 continue;
             }
             
             $enchantmentName = $enchantmentData['name'] ?? 'unknown';
             $level = $enchantmentData['level'] ?? 1;
+            $chance = $enchantmentData['config']['levels'][$level]['chance'] ?? 100;
+
+            $extraData = [
+                'enchant-name' => $enchantmentName,
+                'enchant-level' => $level,
+                'chance' => $chance,
+            ];
 
             if (EnchantmentDisableManager::isEnchantmentDisabled($enchantmentName, $attacker->getName())) {
                 continue;
             }
 
-            $this->applyEffects($enchantmentData['config']['levels'][$level], $attacker, null, "HELD", []);
+            $this->applyEffects(
+                $enchantmentData['config']['levels'][$level],
+                $attacker,
+                null,
+                "HELD",
+                $extraData
+            );
         }
     }
 }
