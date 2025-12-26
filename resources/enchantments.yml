@@ -399,28 +399,6 @@ holdpower:
         - type: ACTION_BAR
           text: "&ePower Active!"
           target: attacker
-heatedstep:
-  display: "{group-color}Heated Step"
-  description:
-    - "Grants regeneration while standing on red wool"
-  applies-to: Boots
-  type:
-    - EFFECT_STATIC
-  group: ELITE
-  applies:
-    - ALL_BOOTS
-  levels:
-    '1':
-      conditions:
-        - type: BLOCK_BELOW
-          value: red_wool
-          target: attacker
-          condition_mode: allow
-      effects:
-        - type: ADD_POTION
-          potion: "regeneration"
-          amplifier: 0
-          target: attacker
 glowing:
   display: "{group-color}Glowing"
   description:
@@ -438,3 +416,4 @@ glowing:
           potion: "night_vision"
           amplifier: 0
           target: attacker
+
