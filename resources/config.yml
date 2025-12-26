@@ -157,152 +157,152 @@ items:
       - BOOK
       - BOW
       - TRIDENT
-    transmogscroll:
-      type: PAPER
-      name: "&r&c&lTransmog Scroll"
+  white-scroll:
+    delete: true
+    lore-display: "&r&f&lPROTECTED"
+    type: "empty_map"
+    force-glow: false
+    name: "&r&fWhite Scroll"
+    lore:
+      - "&r&fPrevents an item from being destroyed"
+      - "&r&fdue to a failed Enchantment Book."
+      - "&r&ePlace scroll on item to apply."
+  transmogscroll:
+    type: PAPER
+    name: "&r&c&lTransmog Scroll"
+    lore:
+      - "&r&7Organizes enchants by &erarity&7 on item"
+      - "&r&7and adds the &dlore &bcount&7 to name."
+      - ""
+      - "&r&e&oPlace scroll on item to apply."
+    enchants-count-formatting: "&d[&b{count}&d]" # The count currently does not work :(
+  soulgem:
+    type: EMERALD
+    name: "&r&c&lSoul Gem &r&7[&a{count}&7]"
+    lore:
+      - "&r&7Apply to an item to add souls."
+  itemnametag:
+    type: NAME_TAG
+    name: "&r&6&lItem NameTag &r&7(Right Click)"
+    lore:
+      - "&r&7Rename and customize your equipment"
+    settings:
+      color: true
+      word-blacklist:
+        - fuck
+        - dick
+        - bitch
+  randomization-scroll:
+    type: PAPER
+    name: "{group-color}{group-name}&l{group-color} Randomization Scroll"
+    lore: 
+      - ''
+      - '&r&7Apply to any {group-color}{group-name} &r&7Enchantment Book'
+      - '&r&7to reroll the success and destroy rates.'
+      - ''
+      - '&r&7Drag n'' drop onto enchantment book&7 to apply.'
+  black-scroll:
+    type: INK_SAC
+    name: "&r&f&lBlack Scroll"
+    lore: 
+      - "&r&7Removes a random enchantment"
+      - "&r&7from an item and converts"
+      - "&r&7it into a &f{success}% &r&7success book."
+      - "&fPlace scroll onto item to extract."
+    success: 95
+    destroy: 5
+    random: true
+  secret-dust:
+    type: FIRE_CHARGE
+    name: "{group-color}{group-name}{group-color} Secret Dust &7(Right Click)"
+    lore:
+      - "&r&7Contains: &bMagic, &fMystery &7dust."
+      - "&r&7An unidentified satchel of dust."
+  mystery-dust:
+    type: SUGAR
+    name: "{group-color}{group-name}{group-color} Mystery Dust"
+    lore:
+      - "&r&a+{percent}% Success"
+      - "&r&7Apply to a any {group-color}{group-name} &r&7Enchantment Book"
+      - "&r&7to increase its success by {group-color}{percent}%"
+  slot-increaser:
+    type: ENDER_EYE
+    name: "{group-color}&l{group-name} Slot Increaser"
+    lore: 
+      - "&r&7Increase slots limit on an item by &a+{count}"
+  blocktrak:
+    type: SLIME_BALL
+    name: "&r&aBlockTrak Creator"
+    lore:
+      - "&r&7Track how many blocks you break with a tool"
+      - "&r&7Drag ontop of another item to apply it"
+    settings:
+      lore-display: "&r&eBlockTrak Blocks Broken: &6{stats}"
+  stattrak:
+    type: MAGMA_CREAM
+    name: "&r&eStatTrak Creator"
+    lore:
+      - "&r&7Track how many kills you have with a weapon"
+      - "&r&7Drag ontop of another item to apply it"
+    settings:
+      lore-display: "&r&eStatTrak Kills: &6{stats}"
+  mobtrak:
+    type: SLIME_BALL
+    name: "&r&3MobTrak Creator"
+    lore:
+      - "&r&7Track how many mobs you kill with a weapon"
+      - "&r&7Drag ontop of another item to apply it"
+    settings:
+      lore-display: "&r&3MobTrak Kills: &6{stats}"
+  holywhitescroll:
+    type: PAPER
+    name: "&r&l&6Holy White Scroll"
+    lore:
+      - "&r&eA legendary reward that can"
+      - "&r&ebe applied to armor/weapons,"
+      - "&r&egives a 100% chance of not losing"
+      - "&r&ethe blessed item on death."
+    settings:
+      lore-display: "&r&e&l*&f&lHOLY&e&l* &f&lPROTECTED"
+      keep-after-death: false
+  orb:
+    lore: "&r&a{max} Enchantment Slots &7(Orb [&a+{increased}&7])"
+    weapon:
+      material: ENDER_EYE
+      name: "&r&6&lWeapon Enchantment Orb &6[&a{max}&6]"
       lore:
-        - "&r&7Organizes enchants by &erarity&7 on item"
-        - "&r&7and adds the &dlore &bcount&7 to name."
+        - "&r&a{success}% Success Rate"
         - ""
-        - "&r&e&oPlace scroll on item to apply."
-      enchants-count-formatting: "&d[&b{count}&d]" # The count currently does not work :(
-    soulgem:
-      type: EMERALD
-      name: "&r&c&lSoul Gem &r&7[&a{count}&7]"
+        - "&r&6+{new} Enchantment slots"
+        - "&r&6{max} Max Enchantment Slots"
+        - ""
+        - "&r&eIncreases the # of enchantment"
+        - "&r&eslots on a weapon by {new},"
+        - "&r&eup to a maximum of {max}"
+        - "&r&7Drag n'' Drop onto an item to apply."
+    armor:
+      material: ENDER_EYE
+      name: "&r&6&lArmor Enchantment Orb &6[&r&a{max}&l&6]"
       lore:
-        - "&r&7Apply to an item to add souls."
-    itemnametag:
-      type: NAME_TAG
-      name: "&r&6&lItem NameTag &r&7(Right Click)"
+        - "&r&a{success}% Success Rate"
+        - ""
+        - "&r&6+{new} Enchantment slots"
+        - "&r&6{max} Max Enchantment Slots"
+        - ""
+        - "&r&eIncreases the # of enchantment"
+        - "&r&eslots on a piece of armor by {new},"
+        - "&r&eup to a maximum of {max}"
+        - "&r&7Drag n'' Drop onto an item to apply."
+    tool:
+      material: ENDER_EYE
+      name: "&r&6&lTool Enchantment Orb &6[&a{max}&6]"
       lore:
-        - "&r&7Rename and customize your equipment"
-      settings:
-        color: true
-        word-blacklist:
-          - fuck
-          - dick
-          - bitch
-    randomization-scroll:
-      type: PAPER
-      name: "{group-color}{group-name}&l{group-color} Randomization Scroll"
-      lore: 
-        - ''
-        - '&r&7Apply to any {group-color}{group-name} &r&7Enchantment Book'
-        - '&r&7to reroll the success and destroy rates.'
-        - ''
-        - '&r&7Drag n'' drop onto enchantment book&7 to apply.'
-    black-scroll:
-      type: INK_SAC
-      name: "&r&f&lBlack Scroll"
-      lore: 
-        - "&r&7Removes a random enchantment"
-        - "&r&7from an item and converts"
-        - "&r&7it into a &f{success}% &r&7success book."
-        - "&fPlace scroll onto item to extract."
-      success: 95
-      destroy: 5
-      random: true
-    secret-dust:
-      type: FIRE_CHARGE
-      name: "{group-color}{group-name}{group-color} Secret Dust &7(Right Click)"
-      lore:
-        - "&r&7Contains: &bMagic, &fMystery &7dust."
-        - "&r&7An unidentified satchel of dust."
-    mystery-dust:
-      type: SUGAR
-      name: "{group-color}{group-name}{group-color} Mystery Dust"
-      lore:
-        - "&r&a+{percent}% Success"
-        - "&r&7Apply to a any {group-color}{group-name} &r&7Enchantment Book"
-        - "&r&7to increase its success by {group-color}{percent}%"
-    slot-increaser:
-      type: ENDER_EYE
-      name: "{group-color}&l{group-name} Slot Increaser"
-      lore: 
-        - "&r&7Increase slots limit on an item by &a+{count}"
-    blocktrak:
-      type: SLIME_BALL
-      name: "&r&aBlockTrak Creator"
-      lore:
-        - "&r&7Track how many blocks you break with a tool"
-        - "&r&7Drag ontop of another item to apply it"
-      settings:
-        lore-display: "&r&eBlockTrak Blocks Broken: &6{stats}"
-    stattrak:
-      type: MAGMA_CREAM
-      name: "&r&eStatTrak Creator"
-      lore:
-        - "&r&7Track how many kills you have with a weapon"
-        - "&r&7Drag ontop of another item to apply it"
-      settings:
-        lore-display: "&r&eStatTrak Kills: &6{stats}"
-    mobtrak:
-      type: SLIME_BALL
-      name: "&r&3MobTrak Creator"
-      lore:
-        - "&r&7Track how many mobs you kill with a weapon"
-        - "&r&7Drag ontop of another item to apply it"
-      settings:
-        lore-display: "&r&3MobTrak Kills: &6{stats}"
-    holywhitescroll:
-      type: PAPER
-      name: "&r&l&6Holy White Scroll"
-      lore:
-        - "&r&eA legendary reward that can"
-        - "&r&ebe applied to armor/weapons,"
-        - "&r&egives a 100% chance of not losing"
-        - "&r&ethe blessed item on death."
-      settings:
-        lore-display: "&r&e&l*&f&lHOLY&e&l* &f&lPROTECTED"
-        keep-after-death: false
-    orb:
-      lore: "&r&a{max} Enchantment Slots &7(Orb [&a+{increased}&7])"
-      weapon:
-        material: ENDER_EYE
-        name: "&r&6&lWeapon Enchantment Orb &6[&a{max}&6]"
-        lore:
-          - "&r&a{success}% Success Rate"
-          - ""
-          - "&r&6+{new} Enchantment slots"
-          - "&r&6{max} Max Enchantment Slots"
-          - ""
-          - "&r&eIncreases the # of enchantment"
-          - "&r&eslots on a weapon by {new},"
-          - "&r&eup to a maximum of {max}"
-          - "&r&7Drag n'' Drop onto an item to apply."
-      armor:
-        material: ENDER_EYE
-        name: "&r&6&lArmor Enchantment Orb &6[&r&a{max}&l&6]"
-        lore:
-          - "&r&a{success}% Success Rate"
-          - ""
-          - "&r&6+{new} Enchantment slots"
-          - "&r&6{max} Max Enchantment Slots"
-          - ""
-          - "&r&eIncreases the # of enchantment"
-          - "&r&eslots on a piece of armor by {new},"
-          - "&r&eup to a maximum of {max}"
-          - "&r&7Drag n'' Drop onto an item to apply."
-      tool:
-        material: ENDER_EYE
-        name: "&r&6&lTool Enchantment Orb &6[&a{max}&6]"
-        lore:
-          - "&r&a{success}% Success Rate"
-          - ""
-          - "&r&6+{new} Enchantment slots"
-          - "&r&6{max} Max Enchantment Slots"
-          - ""
-          - "&r&eIncreases the # of enchantment"
-          - "&r&eslots on a tool by {new},"
-          - "&r&eup to a maximum of {max}"
-          - "&r&7Drag n'' Drop onto an item to apply."
-    white-scroll:
-      delete: true
-      lore-display: "&r&f&lPROTECTED"
-      type: "empty_map"
-      force-glow: false
-      name: "&r&fWhite Scroll"
-      lore:
-        - "&r&fPrevents an item from being destroyed"
-        - "&r&fdue to a failed Enchantment Book."
-        - "&r&ePlace scroll on item to apply."
+        - "&r&a{success}% Success Rate"
+        - ""
+        - "&r&6+{new} Enchantment slots"
+        - "&r&6{max} Max Enchantment Slots"
+        - ""
+        - "&r&eIncreases the # of enchantment"
+        - "&r&eslots on a tool by {new},"
+        - "&r&eup to a maximum of {max}"
+        - "&r&7Drag n'' Drop onto an item to apply."
