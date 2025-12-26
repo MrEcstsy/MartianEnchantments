@@ -11,6 +11,8 @@ use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\Utils;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\utils\EnchantEffectManager;
+use ecstsy\MartianEnchantments\utils\EnchantEffectReconciler;
 use ecstsy\MartianEnchantments\utils\managers\CooldownManager;
 use muqsit\arithmexp\Util;
 use pocketmine\entity\Living;
@@ -25,9 +27,11 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
+use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Armor;
 use pocketmine\item\Item;
@@ -40,10 +44,12 @@ final class EnchantmentListener implements Listener {
     use TriggerHelper;
 
     private Plugin $plugin;
+    private EnchantEffectManager $effectManager;
 
     public function __construct(Plugin $plugin)
     {
         $this->plugin = $plugin;
+        $this->effectManager = new EnchantEffectManager();
     }
 
     public function onPlayerJoin(PlayerJoinEvent $event): void {
@@ -51,18 +57,52 @@ final class EnchantmentListener implements Listener {
 
         $player->getArmorInventory()->getListeners()->add(new CallbackInventoryListener(
             function (Inventory $inventory, int $slot, Item $oldItem): void {
-                Utils::onArmorSlotChange($inventory, $slot, $oldItem);
+                if ($inventory instanceof ArmorInventory) {
+                    $this->effectManager->onArmorSlotChange($inventory, $slot, $oldItem);
+                }
             },
-            function (Inventory $inventory, array $oldContents): void {
-            }
+            function (Inventory $inventory, array $oldContents): void {}
         ));
 
         $player->getInventory()->getListeners()->add(new CallbackInventoryListener(
             function (Inventory $inventory, int $slot, Item $oldItem): void {
-                Utils::onInventorySlotChange($inventory, $slot, $oldItem);
+                if ($inventory instanceof PlayerInventory) {
+                    $this->effectManager->onInventorySlotChange($inventory, $slot, $oldItem);
+                }
             },
-            function (Inventory $inventory, array $oldContents): void { }
+            function (Inventory $inventory, array $oldContents): void {}
         ));
+    }
+
+    /**
+     * @priority HIGHEST
+     */
+    public function onPlayerItemHeld(PlayerItemHeldEvent $event): void {
+        $player = $event->getPlayer();
+        $inv = $player->getInventory();
+
+        $oldItem = $inv->getItemInHand();
+        $newItem = $inv->getItem($event->getSlot()); 
+
+        $this->effectManager->updateHeldItemEffects($player, $oldItem, $newItem);
+    }
+
+    /**
+     * @priority HIGHEST
+     */
+    public function onInventoryTransaction(InventoryTransactionEvent $event): void {
+        $transaction = $event->getTransaction();
+        $player = $transaction->getSource();
+        if (!$player instanceof Player) return;
+
+        foreach ($transaction->getActions() as $action) {
+            if ($action instanceof SlotChangeAction) {
+                $inv = $action->getInventory();
+                if ($inv instanceof ArmorInventory) {
+                    $this->effectManager->onArmorSlotChange($inv, $action->getSlot(), $action->getSourceItem());
+                }
+            }
+        }
     }
 
     /**
@@ -519,10 +559,7 @@ final class EnchantmentListener implements Listener {
         $armorItems = $hitEntity->getArmorInventory()->getContents();
         Utils::handleArrowHitEnchants($shooter, $hitEntity, $armorItems);
     }
-
-    /**
-     * @priority HIGHEST
-     */
+  
     public function onPlayerHeld(PlayerItemHeldEvent $event): void {
         $player = $event->getPlayer();
         $oldItem = $player->getInventory()->getItemInHand();

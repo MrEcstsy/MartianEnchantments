@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\commands\subcommands;
 
-use CortexPE\Commando\args\RawStringArgument;
-use CortexPE\Commando\BaseSubCommand;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\RawStringArgument;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\BaseSubCommand;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantment;
+use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentManager;
 use ecstsy\MartianEnchantments\Loader;
 use pocketmine\command\CommandSender;
-use pocketmine\item\enchantment\StringToEnchantmentParser;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat as C;
@@ -32,12 +32,12 @@ final class UnenchantSubCommand extends BaseSubCommand {
         $enchant = isset($args["enchantment"]) ? $args["enchantment"] : null;
         $item = $sender->getInventory()->getItemInHand();
 
-        $enchantment = StringToEnchantmentParser::getInstance()->parse($enchant);
+        $enchantment = CustomEnchantmentManager::getEnchantment($enchant);
         if ($enchantment !== null) {
             if ($enchantment instanceof CustomEnchantment) {
                 if ($item->getTypeId() !== VanillaItems::AIR()->getTypeId()) {
-                    if ($item->hasEnchantment($enchantment)) {
-                        $item->removeEnchantment($enchantment);
+                    if (CustomEnchantmentManager::hasEnchantment($item, $enchant)) {
+                        CustomEnchantmentManager::removeEnchantment($item, $enchantment);
                         $sender->getInventory()->setItemInHand($item);
                         $sender->sendMessage(C::colorize(str_replace("{enchant}", ucfirst($enchantment->getName()), Loader::getInstance()->getLanguageManager()->getNested("commands.main.unenchant.success"))));
                     } else {

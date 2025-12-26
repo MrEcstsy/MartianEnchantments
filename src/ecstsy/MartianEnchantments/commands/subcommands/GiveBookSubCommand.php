@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\commands\subcommands;
 
-use CortexPE\Commando\args\IntegerArgument;
-use CortexPE\Commando\args\RawStringArgument;
-use CortexPE\Commando\BaseSubCommand;
+use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentInstance;
+use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentManager;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\IntegerArgument;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\RawStringArgument;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\BaseSubCommand;
 use ecstsy\MartianEnchantments\Loader;
 use ecstsy\MartianEnchantments\utils\Items;
-use ecstsy\MartianUtilities\utils\PlayerUtils;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\PlayerUtils;
 use pocketmine\command\CommandSender;
 use pocketmine\item\enchantment\StringToEnchantmentParser;
 use pocketmine\utils\TextFormat as C;
@@ -47,7 +49,7 @@ final class GiveBookSubCommand extends BaseSubCommand {
             if ($enchant !== null) {
                 if ($level !== null) {
                     if ($success !== null && $destroy !== null) {
-                        $enchantment = StringToEnchantmentParser::getInstance()->parse($enchant);
+                        $enchantment = CustomEnchantmentManager::getEnchantment($enchant);
                         
                         if ($player->getInventory()->canAddItem(Items::createEnchantmentBook($enchantment, $level))) {
                             $player->getInventory()->addItem(Items::createEnchantmentBook($enchantment, $level, $success, $destroy)->setCount($amount));

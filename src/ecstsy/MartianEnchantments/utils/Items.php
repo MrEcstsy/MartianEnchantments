@@ -7,8 +7,7 @@ namespace ecstsy\MartianEnchantments\utils;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantment;
 use ecstsy\MartianEnchantments\enchantments\Groups;
 use ecstsy\MartianEnchantments\Loader;
-use ecstsy\MartianUtilities\utils\GeneralUtils;
-use pocketmine\item\enchantment\Enchantment;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
 use pocketmine\item\Item;
 use pocketmine\item\StringToItemParser;
 use pocketmine\item\VanillaItems;
@@ -17,83 +16,83 @@ use pocketmine\utils\TextFormat;
 
 final class Items {
 
-    public static function createEnchantmentBook(Enchantment $enchantment, int $level = 1, ?int $forcedSuccessChance = null, ?int $forcedDestroyChance = null): ?Item {
-        $config = GeneralUtils::getConfiguration(Loader::getInstance(), "config.yml");
-        $bookConfig = $config->getNested("enchantment-book", []);
-        $bookItemType = $bookConfig['item']['type'] ?? 'enchanted_book';
-        $chancesConfig = $config->getNested("chances", []);
-        $enchantmentConfig = GeneralUtils::getConfiguration(Loader::getInstance(), "enchantments.yml")->getAll();
-        $item = StringToItemParser::getInstance()->parse($bookItemType)->setCount(1);
-    
+    public static function createEnchantmentBook(CustomEnchantment $enchantment, int $level = 1, ?int $forcedSuccessChance = null, ?int $forcedDestroyChance = null): ?Item {
+        $plugin = Loader::getInstance();
+
+        $mainConfig = GeneralUtils::getConfiguration($plugin, "config.yml");
+        $bookConfig = $mainConfig->getNested("settings.enchantment-book", []);
+        $chancesConfig = $mainConfig->getNested("chances", []);
+        $enchantsConfig = GeneralUtils::getConfiguration($plugin, "enchantments.yml");
+
+        $enchantName = $enchantment->getName();
+        $enchantData = $enchantsConfig->get($enchantName, []);
+
+        $itemType = $bookConfig['item']['type'] ?? 'enchanted_book';
+        $item = StringToItemParser::getInstance()->parse($itemType)?->setCount(1);
+        if ($item === null) {
+            return null;
+        }
+
         $rarity = $enchantment->getRarity();
         $color = Groups::translateGroupToColor($rarity);
-        $groupName = Groups::getGroupName($rarity);
-    
-        $enchantmentData = $enchantmentConfig[$enchantment->getName()];
+        $roman = GeneralUtils::getRomanNumeral($level);
+        $display = str_replace("{group-color}", $color, $enchantData['display'] ?? ucfirst($enchantName));
+
         $name = str_replace(
             ['{group-color}', '{enchant-no-color}', '{level}'],
-            [$color, str_replace("{group-color}", $color, $enchantmentData['display']), GeneralUtils::getRomanNumeral($level)],
-            $bookConfig['name']
+            [$color, $display, $roman],
+            $bookConfig['name'] ?? "{group-color}{enchant-no-color} {level}"
         );
-    
-        $descriptionLines = [];
-        $appliesTo = "";
-        if ($enchantment instanceof CustomEnchantment) {
-            $enchantConfig = GeneralUtils::getConfiguration(Loader::getInstance(), "enchantments.yml");
-            $enchantData = $enchantConfig->get($enchantment->getName(), []);
-            $descriptionLines = $enchantData['description'] ?? [];
-            $appliesTo = $enchantData['applies-to'] ?? "Unknown";
-        }
-    
-        $descriptionText = implode("\n", $descriptionLines);  
-    
-        $loreLines = [];
-        foreach ($bookConfig['lore'] as $line) {
-            $line = str_replace(
-                ['{group-color}', '{enchant-no-color}', '{level}', '{success}', '{destroy}', '{applies-to}', '{max-level}', '{description}'],
-                [$color, ucfirst($enchantment->getName()), GeneralUtils::getRomanNumeral($level), '{success}', '{destroy}', $appliesTo, $enchantment->getMaxLevel(), $descriptionText],
-                $line
-            );
-            $loreLines[] = TextFormat::colorize($line);
-        }
-    
+
         $item->setCustomName(TextFormat::colorize($name));
-        $item->setLore($loreLines);
 
-        $root = $item->getNamedTag();
-        $bookTag = new CompoundTag();
+        $descriptionLines = $enchantData['description'] ?? [];
+        $descriptionText  = implode("\n", $descriptionLines);
+        $appliesTo = $enchantData['applies-to'] ?? "Unknown";
 
-        $bookTag->setString("enchant_book", strtolower($enchantment->getName()));
-        $bookTag->setInt("level", $level);
-    
-        if ($forcedSuccessChance !== null && $forcedDestroyChance !== null) {
-            $successChance = $forcedSuccessChance;
-            $destroyChance = $forcedDestroyChance;
-        } elseif ($chancesConfig['random'] ?? false) {
-            $successChance = mt_rand(0, 100);
-            $destroyChance = mt_rand(0, 100);
-        } else {
-            $successRange = explode("-", $chancesConfig['success'] ?? "100");
-            $destroyRange = explode("-", $chancesConfig['destroy'] ?? "0");
-    
-            $successChance = isset($successRange[1]) ? mt_rand((int)$successRange[0], (int)$successRange[1]) : (int)$successRange[0];
-            $destroyChance = isset($destroyRange[1]) ? mt_rand((int)$destroyRange[0], (int)$destroyRange[1]) : (int)$destroyRange[0];
-        }
-    
-        $bookTag->setInt("successrate", $successChance);
-        $bookTag->setInt("destroyrate", $destroyChance);
-    
-        $root->setTag("MartianEnchantments", $bookTag);
+        [$successChance, $destroyChance] = Utils::resolveBookChances(
+            $chancesConfig,
+            $forcedSuccessChance,
+            $forcedDestroyChance
+        );
 
-        foreach ($loreLines as &$line) {
-            $line = str_replace(
-                ['{success}', '{destroy}'],
-                [$successChance, $destroyChance],
+        $lore = [];
+        foreach ($bookConfig['lore'] as $line) {
+            $lore[] = TextFormat::colorize(str_replace(
+                [
+                    '{group-color}',
+                    '{enchant-no-color}',
+                    '{level}',
+                    '{success}',
+                    '{destroy}',
+                    '{applies-to}',
+                    '{max-level}',
+                    '{description}'
+                ],
+                [
+                    $color,
+                    ucfirst($enchantName),
+                    $roman,
+                    $successChance,
+                    $destroyChance,
+                    $appliesTo,
+                    $enchantment->getMaxLevel(),
+                    $descriptionText
+                ],
                 $line
-            );
+            ));
         }
-        $item->setLore($loreLines);
-    
+
+        $item->setLore($lore);
+
+        $tag = new CompoundTag();
+        $tag->setString("enchant_book", strtolower($enchantName));
+        $tag->setInt("level", $level);
+        $tag->setInt("successrate", $successChance);
+        $tag->setInt("destroyrate", $destroyChance);
+
+        $item->getNamedTag()->setTag("MartianEnchantments", $tag);
+
         return $item;
     }   
 
@@ -357,7 +356,7 @@ final class Items {
                 throw new \RuntimeException("Configuration file not found.");
             }
 
-            $bookConfig = $config->getNested("enchanter-books");
+            $bookConfig = $config->getNested("settings.enchanter-books");
 
             if ($bookConfig === null) {
                 throw new \RuntimeException("Enchanter books configuration not found.");
@@ -414,3 +413,4 @@ final class Items {
 
     
 }
+

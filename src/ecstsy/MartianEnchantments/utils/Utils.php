@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\utils;
 
+use ecstsy\AdvancedEnchantments\Enchantments\CustomEnchantmentIds;
+use ecstsy\MartianEnchantments\conditions\BlockBelowCondition;
 use ecstsy\MartianEnchantments\conditions\IsHoldingCondition;
 use ecstsy\MartianEnchantments\conditions\IsSneakingCondition;
 use ecstsy\MartianEnchantments\effects\ActionBarEffect;
@@ -39,14 +41,11 @@ final class Utils {
     public const FAKE_ENCH_ID = -1;
 
     public static function initRegistries(): void {
-        $triggers = [
-
-        ];
-
         $conditions = [
             //"VICTIM_HEALTH" => new VictimHealthCondition(),
             "IS_SNEAKING" => new IsSneakingCondition(),
             "IS_HOLDING" => new IsHoldingCondition(),
+            "BLOCK_BELOW" => new BlockBelowCondition(),
         ];
 
         $effects = [
@@ -68,10 +67,6 @@ final class Utils {
             'DISABLE_ACTIVATION' => new DisableActivationEffect(),
             'STEAL_HEALTH' => new StealHealthEffect(),
         ];
-
-        foreach ($triggers as $trigger => $handler) {
-            TriggerRegistry::register($trigger, $handler);
-        }
 
         foreach ($conditions as $condition => $handler) {
             ConditionRegistry::register($condition, $handler);
@@ -253,22 +248,33 @@ final class Utils {
 
     public static function onArmorSlotChange(ArmorInventory $inventory, int $slot, Item $oldItem): void {
         $player = $inventory->getHolder();
-        if (!$player instanceof Player) return;
+        if (!$player instanceof Player || $slot > 3) return;
 
         $newItem = $inventory->getItem($slot);
-        
-        if ($slot > 3) return;
-
         self::processArmorChange($player, $oldItem, $newItem, $slot);
     }
 
-    public static  function processArmorChange(Player $player, Item $oldItem, Item $newItem, int $slot): void {
+    public static function processArmorChange(Player $player, Item $oldItem, Item $newItem, int $slot): void {
         if (!$oldItem->isNull()) {
-            self::handleArmorItem($player, $oldItem, $slot, true);
+            EffectTracker::clearSlotEffects($player, $slot); // Remove old effects regardless of enchant type
         }
 
         if (!$newItem->isNull() && $newItem instanceof Armor) {
-            self::handleArmorItem($player, $newItem, $slot, false);
+            $enchantments = self::extractEnchantmentsFromItems([$newItem]);
+
+            $staticEnchants = array_filter($enchantments, function(array $enchantment): bool {
+                return in_array("EFFECT_STATIC", (array)($enchantment['config']['type'] ?? []), true);
+            });
+
+            if (!empty($staticEnchants)) {
+                (new EffectStaticTrigger())->execute(
+                    $player,
+                    null,
+                    $staticEnchants,
+                    "EFFECT_STATIC",
+                    ['slot' => $slot, 'source' => 'armor']
+                );
+            }
         }
     }
 
@@ -309,14 +315,14 @@ final class Utils {
                 continue;
             }
 
-            $level  = $cfg['level'] ?? 1;
+            $level = $cfg['level'] ?? 1;
             $chance = $cfg['config']['levels'][$level]['chance'] ?? 100;
-            $name   = $cfg['name'] ?? 'unknown';
+            $name = $cfg['name'] ?? 'unknown';
 
             $extra = [
                 'enchant-level' => $level,
-                'chance'        => $chance,
-                'enchant-name'  => $name,
+                'chance' => $chance,
+                'enchant-name' => $name,
             ];
 
             $filtered[] = $cfg;
@@ -325,5 +331,24 @@ final class Utils {
         if (!empty($filtered)) {
             (new GenericTrigger())->execute($attacker, $victim, $filtered, 'ARROW_HIT', $extra);
         }
+    }
+
+    public static function resolveBookChances(array $config, ?int $forcedSuccess, ?int $forcedDestroy): array {
+
+        if ($forcedSuccess !== null && $forcedDestroy !== null) {
+            return [$forcedSuccess, $forcedDestroy];
+        }
+
+        if ($config['random'] ?? false) {
+            return [mt_rand(0, 100), mt_rand(0, 100)];
+        }
+
+        $success = explode("-", (string)($config['success'] ?? "100"));
+        $destroy = explode("-", (string)($config['destroy'] ?? "0"));
+
+        $successChance = isset($success[1]) ? mt_rand((int)$success[0], (int)$success[1]) : (int)$success[0];
+        $destroyChance = isset($destroy[1]) ? mt_rand((int)$destroy[0], (int)$destroy[1]) : (int)$destroy[0];
+
+        return [$successChance, $destroyChance];
     }
 }
