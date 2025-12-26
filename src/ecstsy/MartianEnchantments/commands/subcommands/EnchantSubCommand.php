@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\commands\subcommands;
 
-use CortexPE\Commando\args\IntegerArgument;
-use CortexPE\Commando\args\RawStringArgument;
-use CortexPE\Commando\BaseSubCommand;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\IntegerArgument;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\RawStringArgument;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\BaseSubCommand;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantment;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentManager;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantments;
