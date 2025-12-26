@@ -1,6 +1,119 @@
-# << Example configuration >>
-# lastchance: <-- Enchantment name
-#  display: "{group-color}Last Chance" <-- Display in item lore
+# ============================================================
+# MartianEnchantments – Enchantment Configuration
+#
+# HOW THIS FILE WORKS:
+#
+# Each top-level key (example_enchant, lifesteal, haste, etc.)
+# is the ENCHANTMENT IDENTIFIER.
+#
+# - This identifier MUST be unique
+# - It should be simple, lowercase, and have no spaces
+# - This is how the enchant is referenced internally
+#
+# Example:
+#   lifesteal:  <-- identifier
+#
+# A full in-depth guide, including all triggers, conditions,
+# effects, and valid applies values will be available here:
+# 👉 https://github.com/MrEcstsy/MartianEnchantments/wiki (COMING SOON)
+# ============================================================
+# ------------------------------------------------------------
+# EXAMPLE ENCHANTMENT
+# ------------------------------------------------------------
+example_enchant:
+  # display:
+  # What shows in item lore.
+  # This can be styled freely (colors, symbols, spaces, etc.)
+  display: "{group-color}Example Enchant ✦"
+
+  # description:
+  # Lore description shown on the item.
+  # This is purely visual and can be anything you want.
+  description:
+    - "This is an example enchantment."
+    - "Used to demonstrate the config format."
+
+  # applies-to:
+  # Cosmetic / informational category.
+  # Used for enchantment books, menus, etc.
+  # (Does NOT control functionality)
+  applies-to: Swords
+
+  # type:
+  # The TRIGGER(s) for this enchant.
+  # This determines WHEN the enchant is evaluated.
+  #
+  # Examples:
+  # ATTACK, ATTACK_MOB, DEFENSE, HELD, EFFECT_STATIC,
+  # EAT, DEATH, FIRE, FALL_DAMAGE, EXPLOSION, etc.
+  type:
+    - ATTACK
+
+  # group:
+  # The enchant rarity.
+  # Defined in groups.yml and fully customizable.
+  #
+  # Default groups include:
+  # SIMPLE, UNIQUE, ELITE, ULTIMATE, LEGENDARY, FABLED
+  group: SIMPLE
+
+  # applies:
+  # THIS IS REQUIRED.
+  # Controls what items can actually use this enchant.
+  #
+  # Examples:
+  # ALL_SWORD, DIAMOND_SWORD, ALL_ARMOR, HELMET,
+  # ALL_PICKAXE, BOOTS, CHESTPLATE, etc.
+  applies:
+    - ALL_SWORD
+
+  # levels:
+  # Defines the behavior per enchantment level.
+  # At least ONE level is required.
+  levels:
+    '1':
+      # chance (OPTIONAL):
+      # Chance for the enchant to activate (0–100).
+      # Defaults to 100 if omitted.
+      chance: 25
+
+      # cooldown (OPTIONAL):
+      # Cooldown in seconds before this enchant can trigger again.
+      cooldown: 10
+
+      # conditions (OPTIONAL):
+      # Conditions must pass before effects can run.
+      # Conditions add logic and control to enchants.
+      #
+      # Example conditions:
+      # IS_SNEAKING, IS_HOLDING, BLOCK_BELOW, etc.
+      conditions:
+        - type: IS_SNEAKING
+          target: attacker
+          condition_mode: allow
+
+      # effects:
+      # What the enchant actually DOES.
+      #
+      # Each effect has its own supported keys.
+      # Example effects:
+      # ADD_POTION, STEAL_HEALTH, ADD_HEALTH,
+      # MESSAGE, ACTION_BAR, BURN, CANCEL_EVENT, etc.
+      effects:
+        - type: ADD_POTION
+          potion: "strength"
+          amplifier: 0
+          target: attacker
+
+        - type: MESSAGE
+          text: "&aExample Enchant activated!"
+          target: attacker
+
+
+# ============================================================
+# REAL ENCHANTMENTS START BELOW
+# ============================================================
+
 lifesteal:
   display: "{group-color}Lifesteal"
   description:
@@ -171,6 +284,23 @@ feast:
         - type: ADD_FOOD
           amount: 3
           target: victim
+rebirth:
+  display: "{group-color}Rebirth"
+  description:
+    - "On death shows a message"
+    - "and gives a chance to revive."
+  applies-to: Chestplate
+  type:
+    - DEATH
+  group: LEGENDARY
+  applies:
+    - CHESTPLATE
+  levels:
+    '1':
+      cooldown: 120
+      effects:
+        - type: BLOOD
+          target: victim
 featherfall:
   display: "{group-color}Featherfall"
   description:
@@ -217,12 +347,13 @@ armoraura:
     - ALL_ARMOR
   levels:
     '1':
-      cooldown: 0
       effects:
         - type: ADD_POTION
           potion: "resistance"
           amplifier: 0
           target: attacker
+
+
 sneakstrike:
   display: "{group-color}Sneak Strike"
   description:
@@ -267,4 +398,43 @@ holdpower:
       effects:
         - type: ACTION_BAR
           text: "&ePower Active!"
+          target: attacker
+heatedstep:
+  display: "{group-color}Heated Step"
+  description:
+    - "Grants regeneration while standing on red wool"
+  applies-to: Boots
+  type:
+    - EFFECT_STATIC
+  group: ELITE
+  applies:
+    - ALL_BOOTS
+  levels:
+    '1':
+      conditions:
+        - type: BLOCK_BELOW
+          value: red_wool
+          target: attacker
+          condition_mode: allow
+      effects:
+        - type: ADD_POTION
+          potion: "regeneration"
+          amplifier: 0
+          target: attacker
+glowing:
+  display: "{group-color}Glowing"
+  description:
+    - "Grants permenant night vision when worn"
+  applies-to: Helmet
+  type:
+    - EFFECT_STATIC
+  group: SIMPLE
+  applies:
+    - HELMET
+  levels:
+    '1':
+      effects:
+        - type: ADD_POTION
+          potion: "night_vision"
+          amplifier: 0
           target: attacker
