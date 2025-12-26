@@ -11,6 +11,8 @@ use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\Utils;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\utils\EnchantEffectManager;
+use ecstsy\MartianEnchantments\utils\EnchantEffectReconciler;
 use ecstsy\MartianEnchantments\utils\managers\CooldownManager;
 use muqsit\arithmexp\Util;
 use pocketmine\entity\Living;
@@ -25,9 +27,11 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
+use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Armor;
 use pocketmine\item\Item;
@@ -40,10 +44,12 @@ final class EnchantmentListener implements Listener {
     use TriggerHelper;
 
     private Plugin $plugin;
+    private EnchantEffectManager $effectManager;
 
     public function __construct(Plugin $plugin)
     {
         $this->plugin = $plugin;
+        $this->effectManager = new EnchantEffectManager();
     }
 
     public function onPlayerJoin(PlayerJoinEvent $event): void {
@@ -51,18 +57,52 @@ final class EnchantmentListener implements Listener {
 
         $player->getArmorInventory()->getListeners()->add(new CallbackInventoryListener(
             function (Inventory $inventory, int $slot, Item $oldItem): void {
-                Utils::onArmorSlotChange($inventory, $slot, $oldItem);
+                if ($inventory instanceof ArmorInventory) {
+                    $this->effectManager->onArmorSlotChange($inventory, $slot, $oldItem);
+                }
             },
-            function (Inventory $inventory, array $oldContents): void {
-            }
+            function (Inventory $inventory, array $oldContents): void {}
         ));
 
         $player->getInventory()->getListeners()->add(new CallbackInventoryListener(
             function (Inventory $inventory, int $slot, Item $oldItem): void {
-                Utils::onInventorySlotChange($inventory, $slot, $oldItem);
+                if ($inventory instanceof PlayerInventory) {
+                    $this->effectManager->onInventorySlotChange($inventory, $slot, $oldItem);
+                }
             },
-            function (Inventory $inventory, array $oldContents): void { }
+            function (Inventory $inventory, array $oldContents): void {}
         ));
+    }
+
+    /**
+     * @priority HIGHEST
+     */
+    public function onPlayerItemHeld(PlayerItemHeldEvent $event): void {
+        $player = $event->getPlayer();
+        $inv = $player->getInventory();
+
+        $oldItem = $inv->getItemInHand();
+        $newItem = $inv->getItem($event->getSlot()); 
+
+        $this->effectManager->updateHeldItemEffects($player, $oldItem, $newItem);
+    }
+
+    /**
+     * @priority HIGHEST
+     */
+    public function onInventoryTransaction(InventoryTransactionEvent $event): void {
+        $transaction = $event->getTransaction();
+        $player = $transaction->getSource();
+        if (!$player instanceof Player) return;
+
+        foreach ($transaction->getActions() as $action) {
+            if ($action instanceof SlotChangeAction) {
+                $inv = $action->getInventory();
+                if ($inv instanceof ArmorInventory) {
+                    $this->effectManager->onArmorSlotChange($inv, $action->getSlot(), $action->getSourceItem());
+                }
+            }
+        }
     }
 
     /**
@@ -527,10 +567,8 @@ final class EnchantmentListener implements Listener {
         $victim = $event->getEntity();
         $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
 
-        echo "[DEATH] Event triggered for entity: " . $victim->getName() . PHP_EOL;
 
         if (!$victim instanceof Living || $victim->isAlive()) {
-            echo "[DEATH] Skipped: not a living or still alive" . PHP_EOL;
             return;
         }
 
@@ -553,10 +591,8 @@ final class EnchantmentListener implements Listener {
         $victimEnchants = Utils::getEffectsFromItems($victimItems, "DEATH", $config);
 
         if (!empty($victimEnchants)) {
-            echo "[DEATH] Found " . count($victimEnchants) . " victim-side DEATH enchants" . PHP_EOL;
             (new GenericTrigger())->execute($victim, $attacker, $victimEnchants, "DEATH");
         } else {
-            echo "[DEATH] No victim-side DEATH enchants" . PHP_EOL;
         }
 
         if ($attacker instanceof Player) {
@@ -564,84 +600,7 @@ final class EnchantmentListener implements Listener {
             $attackerEnchants = Utils::getEffectsFromItems($attackerItems, "DEATH", $config);
 
             if (!empty($attackerEnchants)) {
-                echo "[DEATH] Found " . count($attackerEnchants) . " attacker-side DEATH enchants" . PHP_EOL;
                 (new GenericTrigger())->execute($attacker, $victim, $attackerEnchants, "DEATH");
-            } else {
-                echo "[DEATH] No attacker-side DEATH enchants" . PHP_EOL;
-            }
-        }
-    }
-
-    /**
-     * @priority HIGHEST
-     */
-    public function onPlayerHeld(PlayerItemHeldEvent $event): void {
-        $player = $event->getPlayer();
-        $oldItem = $player->getInventory()->getItemInHand();
-        $newItem = $event->getItem();
-    
-        if (!$oldItem->isNull()) {
-            $oldEnchantments = Utils::extractEnchantmentsFromItems([$oldItem]);
-            foreach ($oldEnchantments as $enchantment) {
-                Utils::removeEnchantmentEffects($player, $enchantment);
-            }
-        }
-        
-        if ($newItem instanceof Armor) {
-            return;
-        }
-        
-        if (!$newItem->isNull()) {
-            $newEnchantments = Utils::extractEnchantmentsFromItems([$newItem]);
-            if (!empty($newEnchantments)) {
-                (new HeldTrigger())->execute($player, null, $newEnchantments, "HELD", []);
-            }
-        }
-    }
-    
-    /**
-     * @priority HIGHEST
-     * 
-     * TODO: Make reliability better, occasionally
-     *  doesnt detect shift clicking to equip &
-     *  never detects right clicking in hand...
-     * 
-     * MartianEnchants/utils/Utils.php (line 255-305) (is paired with armor inv listener)
-     */
-    public function onInventoryTransaction(InventoryTransactionEvent $event): void {
-        $transaction = $event->getTransaction();
-        $player = $transaction->getSource();
-
-        if (!$player instanceof Player) {
-            return;
-        }
-
-        foreach ($transaction->getActions() as $action) {
-            if ($action instanceof SlotChangeAction) {
-                $inventory = $action->getInventory();
-
-                if ($inventory instanceof ArmorInventory) {
-                    $newItem = $action->getTargetItem();
-                    $oldItem = $action->getSourceItem();
-
-                    if (!$oldItem->isNull()) {
-                        $oldEnchantments = Utils::extractEnchantmentsFromItems([$oldItem]);
-                        foreach ($oldEnchantments as $enchantment) {
-                            Utils::removeEnchantmentEffects($player, $enchantment);
-                        }
-                    }
-
-                    if (!$newItem->isNull()) {
-                        $newEnchantments = Utils::extractEnchantmentsFromItems([$newItem]);
-                        $filteredEnchantments = array_filter($newEnchantments, function(array $enchantmentData): bool {
-                            return isset($enchantmentData['config']['type']) && in_array("EFFECT_STATIC", (array)$enchantmentData['config']['type'], true);
-                        });
-    
-                        if (!empty($filteredEnchantments)) {
-                            (new EffectStaticTrigger())->execute($player, null, $filteredEnchantments, "EFFECT_STATIC", []);
-                        }
-                    }
-                }
             }
         }
     }
