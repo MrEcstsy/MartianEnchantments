@@ -45,7 +45,6 @@ final class Utils {
             //"VICTIM_HEALTH" => new VictimHealthCondition(),
             "IS_SNEAKING" => new IsSneakingCondition(),
             "IS_HOLDING" => new IsHoldingCondition(),
-            "BLOCK_BELOW" => new BlockBelowCondition(),
         ];
 
         $effects = [
@@ -352,3 +351,4 @@ final class Utils {
         return [$successChance, $destroyChance];
     }
 }
+
