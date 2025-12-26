@@ -559,76 +559,49 @@ final class EnchantmentListener implements Listener {
         $armorItems = $hitEntity->getArmorInventory()->getContents();
         Utils::handleArrowHitEnchants($shooter, $hitEntity, $armorItems);
     }
-  
-    public function onPlayerHeld(PlayerItemHeldEvent $event): void {
-        $player = $event->getPlayer();
-        $oldItem = $player->getInventory()->getItemInHand();
-        $newItem = $event->getItem();
-    
-        if (!$oldItem->isNull()) {
-            $oldEnchantments = Utils::extractEnchantmentsFromItems([$oldItem]);
-            foreach ($oldEnchantments as $enchantment) {
-                Utils::removeEnchantmentEffects($player, $enchantment);
-            }
-        }
-        
-        if ($newItem instanceof Armor) {
-            return;
-        }
-        
-        if (!$newItem->isNull()) {
-            $newEnchantments = Utils::extractEnchantmentsFromItems([$newItem]);
-            if (!empty($newEnchantments)) {
-                (new HeldTrigger())->execute($player, null, $newEnchantments, "HELD", []);
-            }
-        }
-    }
-    
+
     /**
      * @priority HIGHEST
-     * 
-     * TODO: Make reliability better, occasionally
-     *  doesnt detect shift clicking to equip &
-     *  never detects right clicking in hand...
-     * 
-     * MartianEnchants/utils/Utils.php (line 255-305) (is paired with armor inv listener)
      */
-    public function onInventoryTransaction(InventoryTransactionEvent $event): void {
-        $transaction = $event->getTransaction();
-        $player = $transaction->getSource();
+    public function onEntityDeath(EntityDeathEvent $event): void {
+        $victim = $event->getEntity();
+        $config = GeneralUtils::getConfiguration($this->plugin, "enchantments.yml");
 
-        if (!$player instanceof Player) {
+
+        if (!$victim instanceof Living || $victim->isAlive()) {
             return;
         }
 
-        foreach ($transaction->getActions() as $action) {
-            if ($action instanceof SlotChangeAction) {
-                $inventory = $action->getInventory();
+        $cause = $victim->getLastDamageCause();
+        $attacker = null;
 
-                if ($inventory instanceof ArmorInventory) {
-                    $newItem = $action->getTargetItem();
-                    $oldItem = $action->getSourceItem();
+        if ($cause instanceof EntityDamageByEntityEvent) {
+            $damager = $cause->getDamager();
+            if ($damager instanceof Player) {
+                $attacker = $damager;
+            }
+        }
 
-                    if (!$oldItem->isNull()) {
-                        $oldEnchantments = Utils::extractEnchantmentsFromItems([$oldItem]);
-                        foreach ($oldEnchantments as $enchantment) {
-                            Utils::removeEnchantmentEffects($player, $enchantment);
-                        }
-                    }
+        $victimItems = [];
+        if ($victim instanceof Player) {
+            $victimItems[] = $victim->getInventory()->getItemInHand();
+        }
+        $victimItems = array_merge($victimItems, $victim->getArmorInventory()->getContents());
 
-                    if (!$newItem->isNull()) {
-                        $newEnchantments = Utils::extractEnchantmentsFromItems([$newItem]);
-                        $filteredEnchantments = array_filter($newEnchantments, function(array $enchantmentData): bool {
-                            return isset($enchantmentData['config']['type']) && in_array("EFFECT_STATIC", (array)$enchantmentData['config']['type'], true);
-                        });
-    
-                        if (!empty($filteredEnchantments)) {
-                            (new EffectStaticTrigger())->execute($player, null, $filteredEnchantments, "EFFECT_STATIC", []);
-                        }
-                    }
-                }
+        $victimEnchants = Utils::getEffectsFromItems($victimItems, "DEATH", $config);
+
+        if (!empty($victimEnchants)) {
+            (new GenericTrigger())->execute($victim, $attacker, $victimEnchants, "DEATH");
+        } else {
+        }
+
+        if ($attacker instanceof Player) {
+            $attackerItems = [$attacker->getInventory()->getItemInHand()];
+            $attackerEnchants = Utils::getEffectsFromItems($attackerItems, "DEATH", $config);
+
+            if (!empty($attackerEnchants)) {
+                (new GenericTrigger())->execute($attacker, $victim, $attackerEnchants, "DEATH");
             }
         }
     }
 }
-
