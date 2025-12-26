@@ -356,7 +356,7 @@ final class Items {
                 throw new \RuntimeException("Configuration file not found.");
             }
 
-            $bookConfig = $config->getNested("enchanter-books");
+            $bookConfig = $config->getNested("settings.enchanter-books");
 
             if ($bookConfig === null) {
                 throw new \RuntimeException("Enchanter books configuration not found.");
@@ -413,3 +413,4 @@ final class Items {
 
     
 }
+
