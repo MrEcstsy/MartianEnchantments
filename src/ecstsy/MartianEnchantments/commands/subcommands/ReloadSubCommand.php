@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\commands\subcommands;
 
-use CortexPE\Commando\BaseSubCommand;
-use ecstsy\AdvancedEnchantments\Utils\Utils;
+use ecstsy\MartianEnchantments\libs\CortexPE\Commando\BaseSubCommand;
 use ecstsy\MartianEnchantments\Loader;
+use ecstsy\MartianUtilities\utils\GeneralUtils;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat as C;
 
@@ -26,7 +26,7 @@ final class ReloadSubCommand extends BaseSubCommand {
         $armorSetsDir = Loader::getInstance()->getDataFolder() . "armorSets/";
 
         foreach ($configFiles as $file) {
-            $cfg = Utils::getConfiguration($file);
+            $cfg = GeneralUtils::getConfiguration(Loader::getInstance(), $file);
             if ($cfg !== null) {
                 $cfg->reload();
             } else {
@@ -37,7 +37,7 @@ final class ReloadSubCommand extends BaseSubCommand {
         $localeFiles = glob($localeDir . "*.yml");
         foreach ($localeFiles as $file) {
             $relativeFile = str_replace(Loader::getInstance()->getDataFolder(), '', $file);
-            $cfg = Utils::getConfiguration($relativeFile);
+            $cfg = GeneralUtils::getConfiguration(Loader::getInstance(), $relativeFile);
             if ($cfg !== null) {
                 $cfg->reload();
             } else {
@@ -48,7 +48,7 @@ final class ReloadSubCommand extends BaseSubCommand {
         $armorSetFiles = glob($armorSetsDir . "*.yml");
         foreach ($armorSetFiles as $file) {
             $relativeFile = str_replace(Loader::getInstance()->getDataFolder(), '', $file);
-            $cfg = Utils::getConfiguration($relativeFile);
+            $cfg = GeneralUtils::getConfiguration(Loader::getInstance(), $relativeFile);
             if ($cfg !== null) {
                 $cfg->reload();
             } else {
