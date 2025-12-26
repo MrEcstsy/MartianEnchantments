@@ -1,6 +1,4 @@
-# MartianEnchantments [![](https://poggit.pmmp.io/shield.state/MartianEnchantments)](https://poggit.pmmp.io/p/MartianEnchantments)
-<a href="https://poggit.pmmp.io/p/MartianEnchantments"><img src="https://poggit.pmmp.io/shield.state/MartianEnchantments"></a> [![](https://poggit.pmmp.io/shield.api/MartianEnchantments)](https://poggit.pmmp.io/p/MartianEnchantments)
-<a href="https://poggit.pmmp.io/p/MartianEnchantments"><img src="https://poggit.pmmp.io/shield.api/MartianEnchantments"></a>
+# MartianEnchantments [![](https://poggit.pmmp.io/shield.state/MartianEnchantments)](https://poggit.pmmp.io/p/MartianEnchantments) <a href="https://poggit.pmmp.io/p/MartianEnchantments"><img src="https://poggit.pmmp.io/shield.state/MartianEnchantments"></a> [![](https://poggit.pmmp.io/shield.api/MartianEnchantments)](https://poggit.pmmp.io/p/MartianEnchantments) <a href="https://poggit.pmmp.io/p/MartianEnchantments"><img src="https://poggit.pmmp.io/shield.api/MartianEnchantments"></a>
 
 MartianEnchantments is a custom enchantment system for PocketMine-MP, inspired by plugins like AdvancedEnchantments, but rewritten from scratch to work properly on modern PocketMine versions.
 
