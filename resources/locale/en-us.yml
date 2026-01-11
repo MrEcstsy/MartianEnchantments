@@ -1,7 +1,7 @@
-version: 1
+version: 2
 
 # Use {p} to insert the plugins prefix.
-prefix: "&r&7[&9AdvancedEnchantments&7]&r "
+prefix: "&r&8[&dMartianEnchantments&8]&r "
 
 effects:
   steal-money: "&r&6{attacker} &7stole &6{amount} &7from &6{victim}&7!"
@@ -229,9 +229,10 @@ applying:
   not-applicable-with: "&cThe &4{enchant1} &cenchantment cannot be applied together with the &4{enchant2}&7 &cenchant!"
   requires-enchant: "&cThe &4{enchant1} &cenchantment requires the &4{enchant2}&7 &cenchant to be applied!"
   already-applied: "&cThe item already has this enchantment."
-  applied: "&aEnchantment was applied to your item."
+  applied: "&aEnchantment was applied to your item." # {enchant} - Enchantment Name
   max-level: "&cThis enchantment is already at max level!"
   wrong-material: "&cThis enchantment cannot be applied on this item."
+  invalid-book: "&cInvalid enchantment book."
 
 slots:
   limit-reached: "&cYou cannot apply that enchantment! There are no free slots left!"
