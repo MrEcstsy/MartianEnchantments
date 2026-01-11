@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\commands\subcommands;
 
-use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentInstance;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantmentManager;
 use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\IntegerArgument;
 use ecstsy\MartianEnchantments\libs\CortexPE\Commando\args\RawStringArgument;
 use ecstsy\MartianEnchantments\libs\CortexPE\Commando\BaseSubCommand;
 use ecstsy\MartianEnchantments\Loader;
-use ecstsy\MartianEnchantments\utils\Items;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\PlayerUtils;
+use ecstsy\MartianEnchantments\server\items\MartianEnchantItems;
 use pocketmine\command\CommandSender;
-use pocketmine\item\enchantment\StringToEnchantmentParser;
 use pocketmine\utils\TextFormat as C;
 use pocketmine\player\Player;
 
@@ -31,43 +29,71 @@ final class GiveBookSubCommand extends BaseSubCommand {
         $this->registerArgument(5, new IntegerArgument("destroy", false));
     }
 
-    public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
-    {
+    public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
+        $lang = Loader::getInstance()->getLanguageManager();
+
         if (!$sender instanceof Player) {
             $sender->sendMessage(C::colorize("&r&7In-game only!"));
             return;
         }
 
-        $player = isset($args["name"]) ? PlayerUtils::getPlayerByPrefix($args["name"]) : null;
-        $enchant = isset($args["enchantment"]) ? $args["enchantment"] : null;
-        $level = isset($args["level"]) ? $args["level"] : null;
-        $amount = isset($args["amount"]) ? $args["amount"] : null;
-        $success = isset($args["success"]) ? $args["success"] : null;
-        $destroy = isset($args["destroy"]) ? $args["destroy"] : null;
+        $playerName = $args["name"] ?? null;
+        $enchantKey = $args["enchantment"] ?? null;
+        $level = $args["level"] ?? null;
+        $amount = $args["amount"] ?? 1;
+        $success = $args["success"] ?? null;
+        $destroy = $args["destroy"] ?? null;
 
-        if ($player !== null) {
-            if ($enchant !== null) {
-                if ($level !== null) {
-                    if ($success !== null && $destroy !== null) {
-                        $enchantment = CustomEnchantmentManager::getEnchantment($enchant);
-                        
-                        if ($player->getInventory()->canAddItem(Items::createEnchantmentBook($enchantment, $level))) {
-                            $player->getInventory()->addItem(Items::createEnchantmentBook($enchantment, $level, $success, $destroy)->setCount($amount));
-                            $sender->sendMessage(C::colorize(str_replace(["{enchant}", "{level}", "{player}", "{amount}"], [$enchant, $level, $player->getName(), $amount], Loader::getInstance()->getLanguageManager()->getNested("commands.main.givebook.success"))));
-                            PlayerUtils::playSound($sender, "random.orb");
-                        } else {
-                            $sender->getWorld()->dropItem($sender->getPosition()->asVector3(), Items::createEnchantmentBook($enchantment, $level));
-                        }
-                    } else {
-                        $sender->sendMessage(C::colorize(Loader::getInstance()->getLanguageManager()->getNested("commands.invalid-level")));
-                    }
-                }
-            } else {
-                $sender->sendMessage(C::colorize(Loader::getInstance()->getLanguageManager()->getNested("commands.invalid-enchantment")));
-            }
-        } else {
-            $sender->sendMessage(C::colorize(Loader::getInstance()->getLanguageManager()->getNested("commands.invalid-player")));
+        if ($playerName === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-player")));
+            return;
         }
+
+        $player = PlayerUtils::getPlayerByPrefix($playerName);
+        if ($player === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-player")));
+            return;
+        }
+
+        if ($enchantKey === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-enchantment")));
+            return;
+        }
+
+        if ($level === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-level")));
+            return;
+        }
+
+        if ($success === null || $destroy === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-usage")));
+            return;
+        }
+
+        $enchantment = CustomEnchantmentManager::getEnchantment($enchantKey);
+        if ($enchantment === null) {
+            $sender->sendMessage(C::colorize($lang->getNested("commands.invalid-enchantment")));
+            return;
+        }
+
+        $book = MartianEnchantItems::enchantmentBook($enchantment, $level, $success, $destroy)->setCount($amount);
+
+        if ($player->getInventory()->canAddItem($book)) {
+            $player->getInventory()->addItem($book);
+        } else {
+            $sender->getWorld()->dropItem(
+                $sender->getPosition()->asVector3(),
+                $book
+            );
+        }
+
+        $sender->sendMessage(C::colorize(str_replace(
+            ["{enchant}", "{level}", "{player}", "{amount}"],
+            [$enchantKey, $level, $player->getName(), $amount],
+            $lang->getNested("commands.main.givebook.success")
+        )));
+
+        PlayerUtils::playSound($sender, "random.orb");
     }
 
     public function getUsage(): string {
