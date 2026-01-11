@@ -2,18 +2,17 @@
 
 namespace ecstsy\MartianEnchantments\enchantments;
 
-use CustomEnchantmentInstance;
 use ecstsy\MartianEnchantments\Loader;
 use ecstsy\MartianEnchantments\utils\Utils;
-use ecstsy\MartianUtilities\utils\GeneralUtils;
-use muqsit\simplepackethandler\SimplePacketHandler;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\libs\muqsit\simplepackethandler\SimplePacketHandler;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use pocketmine\event\EventPriority;
 use pocketmine\item\Armor;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\item\enchantment\ItemEnchantmentTags;
 use pocketmine\item\enchantment\ItemFlags;
-use pocketmine\item\enchantment\StringToEnchantmentParser;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\convert\TypeConverter;
@@ -140,7 +139,7 @@ final class CustomEnchantments {
      * @param string $color
      * @return string
      */
-    private static function getEnchantmentDisplayName(string $enchantmentName, string $color): string {
+    public static function getEnchantmentDisplayName(string $enchantmentName, string $color): string {
         $config = GeneralUtils::getConfiguration(Loader::getInstance(), "enchantments.yml");
 
         if ($config->exists($enchantmentName)) {
@@ -212,8 +211,8 @@ final class CustomEnchantments {
             $description = implode("\n", $descriptionArray);
             $rarity = (int) Groups::getGroupId($enchantmentData['group']);
             $maxLevel = self::getMaxLevel($enchantmentData);
-            $flags = self::parseFlags($enchantmentData['applies-to']);
-            $enchantment = new CustomEnchantment($name, $rarity, $description, $maxLevel, $flags);
+            $tags = self::parseTags($enchantmentData['applies-to']);
+            $enchantment = new CustomEnchantment($name, $rarity, $description, $maxLevel, $tags);
 
             self::register($name, $enchantment);
         }
@@ -229,39 +228,55 @@ final class CustomEnchantments {
         return $maxLevel;
     }
 
-    protected static function parseFlags(string $appliesTo): int {
-        switch (strtolower($appliesTo)) {
-            case 'Pickaxe':
-                return ItemFlags::PICKAXE;
-            case 'Sword':
-                return ItemFlags::SWORD;
-            case 'Chestplate':
-                return ItemFlags::TORSO;
-            case 'Leggings':
-                return ItemFlags::LEGS;
-            case 'Boots':
-                return ItemFlags::FEET;
-            case 'All':
-                return ItemFlags::ALL;
-            case 'Armor':
-                return ItemFlags::ARMOR;
-            case 'Axe':
-                return ItemFlags::AXE;
-            case 'Hoe':
-                return ItemFlags::HOE;
-            case 'Shovel':
-                return ItemFlags::SHOVEL;
-            case 'Shears':
-                return ItemFlags::SHEARS;
-            case 'Bow':
-                return ItemFlags::BOW;
-            case 'Trident':
-                return ItemFlags::TRIDENT;
-            default:
-                return ItemFlags::NONE;
-        }
-    }
+    protected static function parseTags(array|string $appliesTo): array {
+        $applies = is_array($appliesTo) ? $appliesTo : [$appliesTo];
+        $tags = [];
 
+        foreach ($applies as $apply) {
+            switch (strtolower($apply)) {
+                case 'pickaxe':
+                    $tags[] = ItemEnchantmentTags::PICKAXE;
+                    break;
+                case 'sword':
+                    $tags[] = ItemEnchantmentTags::SWORD;
+                    break;
+                case 'axe':
+                    $tags[] = ItemEnchantmentTags::AXE;
+                    break;
+                case 'hoe':
+                    $tags[] = ItemEnchantmentTags::HOE;
+                    break;
+                case 'shovel':
+                    $tags[] = ItemEnchantmentTags::SHOVEL;
+                    break;
+                case 'armor':
+                    $tags[] = ItemEnchantmentTags::ARMOR;
+                    break;
+                case 'helmet':
+                    $tags[] = ItemEnchantmentTags::HELMET;
+                    break;
+                case 'chestplate':
+                    $tags[] = ItemEnchantmentTags::CHESTPLATE;
+                    break;
+                case 'leggings':
+                    $tags[] = ItemEnchantmentTags::LEGGINGS;
+                    break;
+                case 'boots':
+                    $tags[] = ItemEnchantmentTags::BOOTS;
+                    break;
+                case 'bow':
+                    $tags[] = ItemEnchantmentTags::BOW;
+                    break;
+                case 'trident':
+                    $tags[] = ItemEnchantmentTags::TRIDENT;
+                    break;
+                case 'all':
+                    return [ItemEnchantmentTags::ALL]; 
+            }
+        }
+
+        return array_values(array_unique($tags));
+    }
     public static function getEnchantmentByName(string $name): ?CustomEnchantment {
         $key = strtoupper($name);
         return self::$enchants[$key] ?? null;
