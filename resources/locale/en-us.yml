@@ -244,3 +244,17 @@ chances:
 destroy:
   book-failed: "&cEnchantment was unsuccessful!"
 
+interact:
+  # Tags:
+  # {enchant} - Enchantment Name
+  # {applies} - Applies To
+  # {max-level} - Max Level
+  # {roman-level} - Max Level in Roman Numerals
+  # {description} - Description
+  enchantment-book:
+    header: "&7──────── &d&lEnchantment Info &7────────"
+    lines:
+      - "&r&7 * &dEnchantment &7| {enchant}"
+      - "&r&7 * &dApplies to &7| &f{applies}"
+      - "&r&7 * &dMax Level &7| &f{max-level}"
+      - "&r&7 * &dDescription &7| &f{description}"
