@@ -217,10 +217,11 @@ items:
       - "&r&7You successfully applied &r&l&6Holy White Scroll"
 
 combining:
-  already-max-level: "This enchantment is already max level!"
+  already-max-level: "&cThis enchantment is already max level!"
   success: "&aSuccess! &7{enchant} is now level {level}!"
   failure: "&cCombining failed!"
   something-went-wrong: "&cSomething went wrong with combining."
+  requires-same-level: "&cYou must use a level {level} {enchant} book to upgrade this enchantment."
 
 enchant-limitations:
   cannot-be-modified: "&cThis item cannot be modified!"
