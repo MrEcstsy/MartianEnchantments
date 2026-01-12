@@ -8,11 +8,12 @@ use ecstsy\MartianEnchantments\enchantments\CustomEnchantment;
 use ecstsy\MartianEnchantments\enchantments\CustomEnchantments;
 use ecstsy\MartianEnchantments\enchantments\Groups;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as C;
 
 final class MartianEnchantItems {
 
-    public static function enchantmentBook(CustomEnchantment $enchantment, int $level = 1, ?int $forcedSuccessChance = null, ?int $forcedDestroyChance = null) {
+    public static function enchantmentBook(CustomEnchantment $enchantment, int $level = 1, ?int $forcedSuccessChance = null, ?int $forcedDestroyChance = null): Item {
         $appliesTo = array_map('ucfirst', $enchantment->getApplicableItems());
         $success = $forcedSuccessChance !== null ? $forcedSuccessChance : mt_rand(1, 100);
         $destroy = $forcedDestroyChance !== null ? $forcedDestroyChance : mt_rand(1, 100);
@@ -30,14 +31,57 @@ final class MartianEnchantItems {
         ]);
     }
 
-    public static function whiteScroll() {
+    public static function whiteScroll(): Item {
         return MartianEnchantItemFactory::create('white-scroll');
     }
 
-    public static function blackScroll(int $success) {
+    public static function blackScroll(int $success): Item {
         return MartianEnchantItemFactory::create('black-scroll', [
             'success' => $success
         ]);
     }
+
+    public static function randomizationScroll(string $groupName, string $groupColor): Item {
+        return MartianEnchantItemFactory::create('randomization-scroll', [
+            'group-name' => $groupName,
+            'group-color' => $groupColor
+        ]);
+    }
+
+    public static function secretDust(string $groupName, string $groupColor): Item {
+        return MartianEnchantItemFactory::create('secret-dust', [
+            'group-name' => $groupName,
+            'group-color' => $groupColor
+        ]);
+    }
+
+    public static function mysteryDust(string $groupName, string $groupColor, int $percent): Item {
+        return MartianEnchantItemFactory::create('mystery-dust', [
+            'group-name' => $groupName,
+            'group-color' => $groupColor,
+            'percent' => $percent
+        ]);
+    }
+
+    public static function slotIncreaser(string $groupName, string $groupColor, int $count): Item {
+        return MartianEnchantItemFactory::create('slot-increaser', [
+            'group-name' => $groupName,
+            'group-color' => $groupColor,
+            'count' => $count
+        ]);
+    }
+
+    public static function blockTrak(): Item {
+        return MartianEnchantItemFactory::create('blocktrak');
+    }
+
+    public static function statTrak(): Item {
+        return MartianEnchantItemFactory::create('stattrak');
+    }
+
+    public static function mobTrak(): Item {
+        return MartianEnchantItemFactory::create('mobtrak');
+    }
+
 
 }
