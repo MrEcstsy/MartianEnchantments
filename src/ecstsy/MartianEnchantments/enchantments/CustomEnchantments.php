@@ -233,6 +233,12 @@ final class CustomEnchantments {
         $tags = [];
 
         foreach ($applies as $apply) {
+            $apply = strtolower(trim($apply));
+
+            if (str_ends_with($apply, 's')) {
+                $apply = substr($apply, 0, -1);
+            }
+
             switch (strtolower($apply)) {
                 case 'pickaxe':
                     $tags[] = ItemEnchantmentTags::PICKAXE;
@@ -270,6 +276,15 @@ final class CustomEnchantments {
                 case 'trident':
                     $tags[] = ItemEnchantmentTags::TRIDENT;
                     break;
+                case 'armor':
+                    array_push($tags, ItemEnchantmentTags::HELMET, ItemEnchantmentTags::CHESTPLATE, ItemEnchantmentTags::LEGGINGS, ItemEnchantmentTags::BOOTS);
+                    break;
+                case 'tool':
+                    array_push($tags, ItemEnchantmentTags::PICKAXE, ItemEnchantmentTags::AXE, ItemEnchantmentTags::HOE, ItemEnchantmentTags::SHOVEL);
+                    break;
+                case 'weapon':
+                    array_push($tags, ItemEnchantmentTags::SWORD, ItemEnchantmentTags::AXE, ItemEnchantmentTags::BOW, ItemEnchantmentTags::TRIDENT);
+                    break;
                 case 'all':
                     return [ItemEnchantmentTags::ALL]; 
             }
@@ -277,9 +292,11 @@ final class CustomEnchantments {
 
         return array_values(array_unique($tags));
     }
+    
     public static function getEnchantmentByName(string $name): ?CustomEnchantment {
         $key = strtoupper($name);
         return self::$enchants[$key] ?? null;
     }
     
 }
+
