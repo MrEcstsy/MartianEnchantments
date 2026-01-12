@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\utils;
 
-use ecstsy\AdvancedEnchantments\Enchantments\CustomEnchantmentIds;
+use ecstsy\MartianEnchantments\commands\MECommand;
 use ecstsy\MartianEnchantments\conditions\BlockBelowCondition;
 use ecstsy\MartianEnchantments\conditions\IsHoldingCondition;
 use ecstsy\MartianEnchantments\conditions\IsSneakingCondition;
@@ -17,14 +17,21 @@ use ecstsy\MartianEnchantments\effects\BloodEffect;
 use ecstsy\MartianEnchantments\effects\BurnEffect;
 use ecstsy\MartianEnchantments\effects\DisableActivationEffect;
 use ecstsy\MartianEnchantments\effects\StealHealthEffect;
+use ecstsy\MartianEnchantments\enchantments\CustomEnchantments;
+use ecstsy\MartianEnchantments\enchantments\Groups;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\managers\LanguageManager;
+use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\UtilityHandler;
 use ecstsy\MartianEnchantments\Loader;
 use ecstsy\MartianEnchantments\triggers\EffectStaticTrigger;
 use ecstsy\MartianEnchantments\triggers\GenericTrigger;
 use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\registries\ConditionRegistry;
 use ecstsy\MartianEnchantments\utils\registries\EffectRegistry;
-use ecstsy\MartianEnchantments\utils\registries\TriggerRegistry;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\libs\JackMD\ConfigUpdater\ConfigUpdater;
+use ecstsy\MartianEnchantments\libs\muqsit\invmenu\InvMenuHandler;
+use ecstsy\MartianEnchantments\listeners\EnchantmentListener;
+use ecstsy\MartianEnchantments\listeners\ItemListener;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use pocketmine\entity\effect\StringToEffectParser;
 use pocketmine\entity\Entity;
@@ -34,17 +41,103 @@ use pocketmine\item\Armor;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\Item;
 use pocketmine\player\Player;
+use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat as C;
 
 final class Utils {
     public const FAKE_ENCH_ID = -1;
 
+    public static LanguageManager $languageManager;
+    
+    public const CFG_VERSIONS = [
+        "config" => 2,
+        "en-us" => 2,
+    ];
+
+    public static function initAll(): void {
+        $loader = Loader::getInstance();
+        $files = ["enchantments.yml", "groups.yml"];
+        
+        foreach ($files as $file) {
+            $loader->saveResource($file);
+        }
+
+        ConfigUpdater::checkUpdate($loader, $loader->getConfig(), "version", self::CFG_VERSIONS["config"]);
+
+        self::saveAllFilesInDirectory($loader, "locale", [
+            "en-us.yml",
+            "es-es.yml"
+        ]);
+
+        self::saveAllFilesInDirectory($loader, "armorSets", [
+            "starter.yml",
+            "legendary.yml"
+        ]);
+
+        self::saveAllFilesInDirectory($loader, "menus", [
+            "enchanter.yml",
+            "tinkerer.yml"
+        ]);
+
+        $config = GeneralUtils::getConfiguration($loader, "config.yml");
+        $language = $config->getNested("settings.language");
+
+        self::$languageManager = new LanguageManager($loader, $language);
+        $loader->getLogger()->info("MartianEnchantments enabled with language: " . $language);
+
+        $loader->getServer()->getCommandMap()->unregister($loader->getServer()->getCommandMap()->getCommand("me"));
+
+        $loader->getServer()->getCommandMap()->registerAll("MartianEnchantments", [
+            new MECommand($loader, "martianenchantments", "View the martian enchantments commands", ["mes", "me"]),
+        ]);
+
+        $listeners = [
+            new EnchantmentListener($loader),
+            new ItemListener(),
+        ];
+
+        foreach ($listeners as $listener) {
+            $loader->getServer()->getPluginManager()->registerEvents($listener, $loader);
+        }
+
+        if (!InvMenuHandler::isRegistered()) {
+            InvMenuHandler::register($loader);
+        }
+
+        if(!UtilityHandler::isRegistered()) {
+            UtilityHandler::register($loader);
+        }
+        
+        if ($config->getNested("economy.enabled") === true) {
+            // implement
+        } else {
+            $loader->getLogger()->warning("Economy support is disabled.");
+        }
+        
+        Utils::initRegistries();
+        Groups::init();
+        CustomEnchantments::getAll();
+    }
+
+    public static function saveAllFilesInDirectory(PluginBase $plugin, string $directory, array $files): void {
+        foreach ($files as $file) {
+            $path = "$directory/$file";
+
+            try {
+                $plugin->saveResource($path);
+            } catch (\Throwable $e) {
+                $plugin->getLogger()->warning("Failed to save resource: $path");
+            }
+        }
+    }
+
     public static function initRegistries(): void {
         $conditions = [
             //"VICTIM_HEALTH" => new VictimHealthCondition(),
             "IS_SNEAKING" => new IsSneakingCondition(),
             "IS_HOLDING" => new IsHoldingCondition(),
+            "BLOCK_BELOW" => new BlockBelowCondition(),
         ];
 
         $effects = [
@@ -351,4 +444,3 @@ final class Utils {
         return [$successChance, $destroyChance];
     }
 }
-

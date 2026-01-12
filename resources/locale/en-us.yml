@@ -1,7 +1,7 @@
-version: 1
+version: 2
 
 # Use {p} to insert the plugins prefix.
-prefix: "&r&7[&9AdvancedEnchantments&7]&r "
+prefix: "&r&8[&dMartianEnchantments&8]&r "
 
 effects:
   steal-money: "&r&6{attacker} &7stole &6{amount} &7from &6{victim}&7!"
@@ -217,10 +217,11 @@ items:
       - "&r&7You successfully applied &r&l&6Holy White Scroll"
 
 combining:
-  already-max-level: "This enchantment is already max level!"
+  already-max-level: "&cThis enchantment is already max level!"
   success: "&aSuccess! &7{enchant} is now level {level}!"
   failure: "&cCombining failed!"
   something-went-wrong: "&cSomething went wrong with combining."
+  requires-same-level: "&cYou must use a level {level} {enchant} book to upgrade this enchantment."
 
 enchant-limitations:
   cannot-be-modified: "&cThis item cannot be modified!"
@@ -229,9 +230,10 @@ applying:
   not-applicable-with: "&cThe &4{enchant1} &cenchantment cannot be applied together with the &4{enchant2}&7 &cenchant!"
   requires-enchant: "&cThe &4{enchant1} &cenchantment requires the &4{enchant2}&7 &cenchant to be applied!"
   already-applied: "&cThe item already has this enchantment."
-  applied: "&aEnchantment was applied to your item."
+  applied: "&aEnchantment was applied to your item." # {enchant} - Enchantment Name
   max-level: "&cThis enchantment is already at max level!"
   wrong-material: "&cThis enchantment cannot be applied on this item."
+  invalid-book: "&cInvalid enchantment book."
 
 slots:
   limit-reached: "&cYou cannot apply that enchantment! There are no free slots left!"
@@ -242,3 +244,17 @@ chances:
 destroy:
   book-failed: "&cEnchantment was unsuccessful!"
 
+interact:
+  # Tags:
+  # {enchant} - Enchantment Name
+  # {applies} - Applies To
+  # {max-level} - Max Level
+  # {roman-level} - Max Level in Roman Numerals
+  # {description} - Description
+  enchantment-book:
+    header: "&7──────── &d&lEnchantment Info &7────────"
+    lines:
+      - "&r&7 * &dEnchantment &7| {enchant}"
+      - "&r&7 * &dApplies to &7| &f{applies}"
+      - "&r&7 * &dMax Level &7| &f{max-level}"
+      - "&r&7 * &dDescription &7| &f{description}"

@@ -1,8 +1,8 @@
 # (!) DO NOT CHANGE (!)
-version: 1
+version: 2
 
 # MartianEnchantments
-# Coded by ecstsylove
+# Coded by ecstsylove/dvrkarts
 # Made with ❤
 
 economy:
@@ -39,10 +39,6 @@ commands:
 
 settings:
   language: en-us
-  disabled-enchants:
-    # Disable enchants in specific world
-    test_word: # world name
-      - test_enchant
   disable-armorsets:
     # Disable armorsets in specific world
     test_word: # world name
@@ -90,10 +86,10 @@ settings:
     cosmetics:
       applied:
         particle: "minecraft:villager_happy"
-        sound: random.levelup
+        sound: 'random.levelup'
       failed:
-        particle: LAVA_POP
-        sound: random.anvil_berak
+        particle: 'minecraft:lava_pop'
+        sound: 'random.anvil_break'
   enchanter-books:
     firework-on-open: true
     cosmetics:
@@ -135,8 +131,8 @@ settings:
     item:
       type: "enchanted_book"
       force-glow: false
-    # Variables: {enchant}, {enchant-no-color}, {description}, {level-description}, {applies}, {success}, {destroy}, {color}, {max-level}
-    name: "&r{group-color}&l{enchant-no-color} {level}"
+    # Variables: {enchantment}, {enchant-no-color}, {description}, {applies-to}, {success}, {destroy}, {group-color}, {level}, {roman-level}
+    name: "&r{group-color}&l{enchant-no-color} {roman-level}"
     lore:
       - "&r&a{success}% Success Rate"
       - "&r&c{destroy}% Destroy Rate"
