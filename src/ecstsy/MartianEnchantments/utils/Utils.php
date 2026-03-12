@@ -86,7 +86,15 @@ final class Utils {
         self::$languageManager = new LanguageManager($loader, $language);
         $loader->getLogger()->info("MartianEnchantments enabled with language: " . $language);
 
-        $loader->getServer()->getCommandMap()->unregister($loader->getServer()->getCommandMap()->getCommand("me"));
+        $unregisteredCommands = ["me"];
+
+        foreach ($unregisteredCommands as $cmd) {
+            $command = $loader->getServer()->getCommandMap()->getCommand($cmd);
+
+            if ($command === null) continue;
+            
+            $loader->getServer()->getCommandMap()->unregister($command);
+        }
 
         $loader->getServer()->getCommandMap()->registerAll("MartianEnchantments", [
             new MECommand($loader, "martianenchantments", "View the martian enchantments commands", ["mes", "me"]),
@@ -444,3 +452,4 @@ final class Utils {
         return [$successChance, $destroyChance];
     }
 }
+
