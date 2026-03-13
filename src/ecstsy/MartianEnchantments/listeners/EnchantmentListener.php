@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace ecstsy\MartianEnchantments\listeners;
 
-use ecstsy\MartianEnchantments\Loader;
-use ecstsy\MartianEnchantments\triggers\EffectStaticTrigger;
 use ecstsy\MartianEnchantments\triggers\GenericTrigger;
 use ecstsy\MartianEnchantments\triggers\HeldTrigger;
 use ecstsy\MartianEnchantments\utils\TriggerHelper;
 use ecstsy\MartianEnchantments\utils\Utils;
 use ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils\GeneralUtils;
+use ecstsy\MartianEnchantments\utils\EffectTracker;
 use ecstsy\MartianEnchantments\utils\EnchantEffectManager;
-use ecstsy\MartianEnchantments\utils\EnchantEffectReconciler;
 use ecstsy\MartianEnchantments\utils\managers\CooldownManager;
-use muqsit\arithmexp\Util;
 use pocketmine\entity\Living;
 use pocketmine\entity\projectile\Arrow;
 use pocketmine\entity\projectile\Projectile;
@@ -27,17 +24,14 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerItemHeldEvent;
 use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\PlayerInventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
-use pocketmine\item\Armor;
 use pocketmine\item\Item;
 use pocketmine\player\Player;
 use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\ClosureTask;
 
 final class EnchantmentListener implements Listener {
 
@@ -82,9 +76,23 @@ final class EnchantmentListener implements Listener {
         $inv = $player->getInventory();
 
         $oldItem = $inv->getItemInHand();
-        $newItem = $inv->getItem($event->getSlot()); 
+        $newItem = $inv->getItem($event->getSlot());
 
-        $this->effectManager->updateHeldItemEffects($player, $oldItem, $newItem);
+        if (!$oldItem->isNull()) {
+            $oldEnchantments = Utils::extractEnchantmentsFromItems([$oldItem]);
+            foreach ($oldEnchantments as $enchantment) {
+                if (in_array("HELD", array_map('strtoupper', $enchantment['config']['type'] ?? []))) {
+                    EffectTracker::removeEnchantmentEffects($player, $enchantment['name']);
+                }
+            }
+        }
+
+        if (!$newItem->isNull()) {
+            $newEnchantments = Utils::extractEnchantmentsFromItems([$newItem]);
+            if (!empty($newEnchantments)) {
+                (new HeldTrigger())->execute($player, null, $newEnchantments, "HELD", []);
+            }
+        }
     }
 
     /**
