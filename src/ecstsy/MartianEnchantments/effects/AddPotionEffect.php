@@ -3,10 +3,11 @@
 namespace ecstsy\MartianEnchantments\effects;
 
 use ecstsy\MartianEnchantments\utils\EffectInterface;
+use ecstsy\MartianEnchantments\utils\EffectTracker;
 use pocketmine\entity\effect\EffectInstance;
 use pocketmine\entity\effect\StringToEffectParser;
 use pocketmine\entity\Entity;
-use pocketmine\entity\Living;
+use pocketmine\player\Player;
 
 class AddPotionEffect implements EffectInterface {
 
@@ -14,7 +15,7 @@ class AddPotionEffect implements EffectInterface {
     {
         $target = $effectData['target'] === 'victim' ? $victim : $attacker;
     
-        if (!$target instanceof Living) {
+        if (!$target instanceof Player) {
             return; 
         }
 
@@ -24,9 +25,11 @@ class AddPotionEffect implements EffectInterface {
 
         $amplifier = (int) ($effectData['amplifier'] ?? 0);
         $duration = (int) ($effectData['duration'] ?? 2147483647);
+        $effect = new EffectInstance($potion, $duration, $amplifier);
 
-        if ($target instanceof Living) {
-            $target->getEffects()->add(new EffectInstance($potion, $duration, $amplifier));
-        }
+        $enchantmentName = $extraData['enchant-name'] ?? 'unknown';
+        $level = $extraData['enchant-level'] ?? 1;
+
+        EffectTracker::addEffect($target, $effect, $enchantmentName, $level);
     }
 }
