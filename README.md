@@ -3,7 +3,7 @@
 MartianEnchantments is a custom enchantment system for PocketMine-MP, inspired by plugins like AdvancedEnchantments, but rewritten from scratch to work properly on modern PocketMine versions.
 
 The main goal of this plugin is to provide a flexible, configuration-driven way to create and manage custom enchantments without relying on vanilla or PocketMine’s built-in enchantment system.
-
+ 
 ---
 
 ## ⚠️ Experimental Status
