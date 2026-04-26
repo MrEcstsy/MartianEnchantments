@@ -97,7 +97,7 @@ final class Utils {
         }
 
         $loader->getServer()->getCommandMap()->registerAll("MartianEnchantments", [
-            new MECommand($loader, "martianenchantments", "View the martian enchantments commands", ["mes", "me"]),
+            new MECommand($loader, "martianenchantments", "MartianEnchantments — custom enchants (/me)", ["mes", "me"]),
         ]);
 
         $listeners = [
@@ -116,13 +116,7 @@ final class Utils {
         if(!UtilityHandler::isRegistered()) {
             UtilityHandler::register($loader);
         }
-        
-        if ($config->getNested("economy.enabled") === true) {
-            // implement
-        } else {
-            $loader->getLogger()->warning("Economy support is disabled.");
-        }
-        
+
         Utils::initRegistries();
         Groups::init();
         CustomEnchantments::getAll();

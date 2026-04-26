@@ -14,7 +14,6 @@ final class Loader extends PluginBase {
     use SingletonTrait;
 
     private static ?ZippedResourcePack $pack;
-    public $economyProvider;
     public const TYPE_DYNAMIC_PREFIX = "martianenchants:customsizedinvmenu_"; # The entire custom sized inv is from muqsit
 
     public function onLoad(): void {

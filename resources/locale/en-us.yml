@@ -4,7 +4,6 @@ version: 2
 prefix: "&r&8[&dMartianEnchantments&8]&r "
 
 effects:
-  steal-money: "&r&6{attacker} &7stole &6{amount} &7from &6{victim}&7!"
   used: "&r&fUsed &r{enchant-color} {level}"
 
 commands:
@@ -129,9 +128,7 @@ tinkerer:
 alchemist:
   doesnt-accept: "&cThe Alchemist doesn't accept this item!"
   trade-cancelled: "&cTrade cancelled."
-  cannot-afford: "&cYou cannot afford this transaction!"
   exceeds-max-level: "&cYour combined level exceeds maximum enchantment level!"
-  take-currency: "&c- {price}"
 
 gkits:
   no-permission: "&eYou don't have permissions to use &e{gkit}&6 kit."

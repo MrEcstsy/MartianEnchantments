@@ -5,10 +5,6 @@ version: 2
 # Coded by ecstsylove/dvrkarts
 # Made with ❤
 
-economy:
-  enabled: false
-  provider: BedrockEconomy
-
 commands:
   enchanter:
     enabled: true
