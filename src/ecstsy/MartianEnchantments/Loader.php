@@ -18,6 +18,11 @@ final class Loader extends PluginBase {
 
     public function onLoad(): void {
         self::setInstance($this);
+
+        $autoload = dirname($this->getFile()) . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . "autoload.php";
+        if (is_file($autoload)) {
+            require_once $autoload;
+        }
     }
 
     public function onEnable(): void {

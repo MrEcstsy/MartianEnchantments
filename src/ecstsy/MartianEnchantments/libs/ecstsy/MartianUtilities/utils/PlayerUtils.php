@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ecstsy\MartianEnchantments\libs\ecstsy\MartianUtilities\utils;
 
 use pocketmine\entity\Entity;
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PlaySoundPacket;
 use pocketmine\network\mcpe\protocol\SpawnParticleEffectPacket;
 use pocketmine\player\Player;
@@ -73,11 +74,22 @@ final class PlayerUtils {
 
     public static function addParticle(Entity $entity, string $particleName): void {
         if ($entity instanceof Player && $entity->isOnline()) {
-            $packet = new SpawnParticleEffectPacket();
-            $packet->position = $entity->getLocation()->asVector3();
-            $packet->particleName = $particleName;
-            $entity->getNetworkSession()->sendDataPacket($packet);
+            self::spawnParticleEffectFor($entity, $entity->getLocation()->asVector3(), $particleName);
         }
+    }
+
+    /**
+     * Sends a Minecraft Bedrock particle effect at an exact location (only this player sees it).
+     * Prefer {@see spawnParticleEffectFor} with {@code minecraft:enchanting_table_particle} for soul/channel FX.
+     */
+    public static function spawnParticleEffectFor(Player $recipient, Vector3 $position, string $particleIdentifier): void {
+        if (!$recipient->isOnline()) {
+            return;
+        }
+        $packet = new SpawnParticleEffectPacket();
+        $packet->position = $position;
+        $packet->particleName = $particleIdentifier;
+        $recipient->getNetworkSession()->sendDataPacket($packet);
     }
 
     public static function getPermissionLockedStatus(Player $player, string $permission) : string {

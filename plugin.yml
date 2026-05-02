@@ -5,6 +5,8 @@ api: 5.3.0
 version: 0.0.3-DEV
 author: ecstsylove
 description: A highly customizable enchantment system for PocketMine-MP
+softdepend:
+  - DummyItemBlocks
 permissions:
   martianenchantments.default:
     default: op

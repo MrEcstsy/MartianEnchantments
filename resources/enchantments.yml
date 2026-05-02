@@ -16,6 +16,12 @@
 # A full in-depth guide, including all triggers, conditions,
 # effects, and valid applies values will be available here:
 # 👉 https://github.com/MrEcstsy/MartianEnchantments/wiki (COMING SOON)
+#
+# USE_SOUL (effect type):
+# Place this effect first in the chain. While a Soul Gem channel is active (right-click gem),
+# it consumes {amount} souls from that gem pool; failing that aborts this proc (no chain).
+# Costs are tuned per enchant in YAML (“amount”).
+# Matching gem “group” vs enchant rarity is optional: settings.soulsgem.require-matching-book-group
 # ============================================================
 # ------------------------------------------------------------
 # EXAMPLE ENCHANTMENT
@@ -24,7 +30,7 @@ example_enchant:
   # display:
   # What shows in item lore.
   # This can be styled freely (colors, symbols, spaces, etc.)
-  display: "{group-color}Example Enchant ✦"
+  display: "{group-color}Example Enchant"
 
   # description:
   # Lore description shown on the item.
@@ -70,28 +76,17 @@ example_enchant:
   # levels:
   # Defines the behavior per enchantment level.
   # At least ONE level is required.
+  #
+  # chance & cooldown can be a plain number OR a quoted math string (arithmexp).
+  # Use variable: level  (the enchant's current level). Example:
+  #   chance: 9
+  #   chance: "min(100, 8 + level * 2)"
+  #   cooldown: "max(1, 6 - level)"
   levels:
     '1':
-      # chance (OPTIONAL):
-      # Chance for the enchant to activate (0–100).
-      # Defaults to 100 if omitted.
-      chance: 25
-
-      # cooldown (OPTIONAL):
-      # Cooldown in seconds before this enchant can trigger again.
-      cooldown: 10
-
-      # conditions (OPTIONAL):
-      # Conditions must pass before effects can run.
-      # Conditions add logic and control to enchants.
-      #
-      # Example conditions:
-      # IS_SNEAKING, IS_HOLDING, BLOCK_BELOW, etc.
-      conditions:
-        - type: IS_SNEAKING
-          target: attacker
-          condition_mode: allow
-
+      # High chance, no extra conditions — good default for testing (book on sword, hit a mob).
+      chance: 100
+      cooldown: 3
       # effects:
       # What the enchant actually DOES.
       #

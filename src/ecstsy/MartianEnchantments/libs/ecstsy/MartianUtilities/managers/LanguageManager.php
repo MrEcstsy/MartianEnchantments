@@ -29,7 +29,11 @@ final class LanguageManager {
         return $this->config->get($key, "Translation not found: " . $key);
     }
 
-    public function getNested(string $key): mixed {
+    public function getNested(string $key, mixed $default = null): mixed {
+        if (\func_num_args() === 2) {
+            return $this->config->getNested($key, $default);
+        }
+
         return $this->config->getNested($key, "Translation not found: " . $key);
     }
     
