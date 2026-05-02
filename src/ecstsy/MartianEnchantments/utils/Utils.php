@@ -119,7 +119,7 @@ final class Utils {
         $language = (string) $config->getNested("settings.language", "en-us");
 
         self::$languageManager = new LanguageManager($loader, $language);
-        $loader->getLogger()->info("MartianEnchantments enabled with language: " . $language);
+        $loader->getLogger()->debug("MartianEnchantments language: " . $language);
 
         $unregisteredCommands = ["me"];
 
@@ -235,7 +235,7 @@ final class Utils {
 
         GeneralUtils::invalidateCachedConfig($absolute);
 
-        $plugin->getLogger()->notice(
+        $plugin->getLogger()->info(
             "Updated data file {$relativePath} (version {$have} → {$bundledVer}). Previous copy: " . basename($backup)
         );
     }

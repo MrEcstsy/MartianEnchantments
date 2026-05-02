@@ -232,7 +232,7 @@ final class MartianItems {
 
             return $item;
         } catch (\Throwable $e) {
-            Loader::getInstance()->getLogger()->warning("Slot increaser: " . $e->getMessage());
+            Loader::getInstance()->getLogger()->debug("Slot increaser: " . $e->getMessage());
 
             return null;
         }
@@ -246,7 +246,7 @@ final class MartianItems {
 
             return $item;
         } catch (\Throwable $e) {
-            Loader::getInstance()->getLogger()->warning("Scroll ({$registryKey}): " . $e->getMessage());
+            Loader::getInstance()->getLogger()->debug("Scroll ({$registryKey}): " . $e->getMessage());
 
             return null;
         }

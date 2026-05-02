@@ -78,7 +78,7 @@ commands:
         - "&r&f  /me reload &r&8reload data"
         - "&r&f  /me list &r&8enchant UI is in-game only"
         - "&r&f  /me info <enchant> &r&8one enchant’s details"
-        - "&r&f  /me give… &r&8use in-game (&d/me&f); console: reload/info/list text only"
+        - "&r&f  /me give &r&8use in-game (&d/me&f); console: reload/info/list text only"
       header: "&r&8— &dMartianEnchantments&8 · page &f{page}&8 —"
       footer: "&r&8— Aliases &d/me&f, &d/mes &8—"
       invalid-page: "&cInvalid page. Use 1 to {max}."

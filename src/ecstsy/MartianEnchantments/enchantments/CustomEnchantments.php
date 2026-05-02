@@ -219,9 +219,16 @@ final class CustomEnchantments {
         $config = GeneralUtils::getConfiguration(Loader::getInstance(), "enchantments.yml");
         $enchantments = $config->getAll();
 
+        /** @var list<string> */
+        $skippedInvalid = [];
+
         foreach ($enchantments as $enchantmentName => $enchantmentData) {
+            if (!\is_array($enchantmentData)) {
+                continue;
+            }
+
             if (!isset($enchantmentData['display'], $enchantmentData['description'], $enchantmentData['group'])) {
-                Loader::getInstance()->getLogger()->warning("Missing essential fields for enchantment: $enchantmentName. Skipping.");
+                $skippedInvalid[] = (string) $enchantmentName;
                 continue;
             }
     
@@ -238,6 +245,15 @@ final class CustomEnchantments {
             $enchantment = new CustomEnchantment($name, $rarity, $description, $maxLevel, $tags);
 
             self::register($name, $enchantment);
+        }
+
+        if ($skippedInvalid !== []) {
+            $n = \count($skippedInvalid);
+            $sample = array_slice($skippedInvalid, 0, 12);
+            $suffix = $n > \count($sample) ? " (+ " . ($n - \count($sample)) . " more)" : "";
+            Loader::getInstance()->getLogger()->warning(
+                "Skipped {$n} enchantment key(s) missing display/description/group: " . implode(", ", $sample) . $suffix
+            );
         }
     }
 

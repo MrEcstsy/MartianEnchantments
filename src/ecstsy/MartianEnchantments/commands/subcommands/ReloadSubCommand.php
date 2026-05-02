@@ -100,9 +100,10 @@ final class ReloadSubCommand extends BaseSubCommand {
             $sender->sendMessage(C::colorize($ok));
         }
 
-        $setsSummary = $loadedSetIds !== [] ? implode(", ", $loadedSetIds) : "(none parsed — check console for YAML errors)";
-        Loader::getInstance()->getLogger()->info(
-            "Reloaded configs & locales — {$armorSetsCount} armor YAML(s) on disk, sets in memory: {$setsSummary} (~" . round($timeTaken, 2) . "ms)"
+        Loader::getInstance()->getLogger()->debug(
+            "Reload: {$armorSetsCount} armor YAML on disk, sets: "
+            . ($loadedSetIds !== [] ? implode(", ", $loadedSetIds) : "(none)")
+            . " (~" . round($timeTaken, 2) . "ms)"
         );
     }
 

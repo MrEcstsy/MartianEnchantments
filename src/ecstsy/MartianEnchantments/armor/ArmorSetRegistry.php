@@ -42,7 +42,7 @@ final class ArmorSetRegistry {
 
         $logger = Loader::getInstance()->getLogger();
         if (self::$sets !== []) {
-            $logger->info("Loaded armor sets: " . implode(", ", array_keys(self::$sets)));
+            $logger->debug("Armor sets loaded: " . implode(", ", array_keys(self::$sets)));
         } elseif ($files !== []) {
             $logger->warning("Found " . \count($files) . " armorSets/*.yml file(s) but none parsed — fix YAML/errors above.");
         }

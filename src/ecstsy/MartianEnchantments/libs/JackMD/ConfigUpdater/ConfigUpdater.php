@@ -65,7 +65,7 @@ class ConfigUpdater{
 		$plugin->saveResource($originalConfig);
 
 		$task = new ClosureTask(function() use ($plugin, $updateMessage): void{
-			$plugin->getLogger()->critical($updateMessage);
+			$plugin->getLogger()->warning($updateMessage);
 		});
 
 		/* This task is here so that the update message can be sent after full server load */
